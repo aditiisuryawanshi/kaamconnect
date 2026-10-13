@@ -12,11 +12,24 @@ export class ApiError extends Error {
   }
 }
 
+export function getStoredToken(): string | null {
+  return localStorage.getItem('rozgaarsetu_token') || localStorage.getItem('kaamconnect_token');
+}
+
+export function setStoredToken(token: string): void {
+  localStorage.setItem('rozgaarsetu_token', token);
+}
+
+export function removeStoredToken(): void {
+  localStorage.removeItem('rozgaarsetu_token');
+  localStorage.removeItem('kaamconnect_token');
+}
+
 export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ success: boolean; data: T; message?: string; pagination?: any }> {
-  const token = localStorage.getItem('kaamconnect_token');
+  const token = getStoredToken();
   
   const headers = new Headers(options.headers || {});
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
@@ -37,8 +50,7 @@ export async function apiRequest<T = any>(
 
   if (!response.ok) {
     if (response.status === 401) {
-      // Clear token if invalid or expired
-      localStorage.removeItem('kaamconnect_token');
+      removeStoredToken();
     }
     const errorMsg = json.error || json.message || `Request failed with status ${response.status}`;
     throw new ApiError(errorMsg, response.status, json.validation_errors);

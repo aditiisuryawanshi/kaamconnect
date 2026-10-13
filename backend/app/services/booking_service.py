@@ -12,7 +12,7 @@ class BookingService:
     def _generate_booking_reference() -> str:
         date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
         rand_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-        return f"KC-BKG-{date_str}-{rand_str}"
+        return f"RS-BKG-{date_str}-{rand_str}"
 
     @staticmethod
     def create_booking(customer_user_id: str, data: dict) -> dict:

@@ -16,7 +16,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div className="skeleton" style={{ width: 120, height: 120, borderRadius: '50%', margin: '0 auto 16px' }} />
-          <p style={{ color: 'var(--color-secondary-text)', fontSize: '0.875rem' }}>Loading KaamConnect session...</p>
+          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>Loading RozgaarSetu session...</p>
         </div>
       </div>
     );
@@ -54,11 +54,11 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ allowedRoles, children }) 
     return (
       <div className="container" style={{ padding: '60px 20px', textAlign: 'center', maxWidth: 540 }}>
         <div className="card" style={{ padding: '40px 24px' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: 12, color: 'var(--color-primary-green)' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: 12, color: 'var(--color-brand-deep)', fontFamily: 'var(--font-display)' }}>
             Switch to {targetRole.charAt(0).toUpperCase() + targetRole.slice(1)} Mode
           </h2>
-          <p style={{ color: 'var(--color-secondary-text)', marginBottom: 24, fontSize: '0.925rem' }}>
-            Your account currently has roles: <strong>{user.roles.join(', ')}</strong>. To access this workspace, enable {targetRole} mode on your profile.
+          <p style={{ color: 'var(--color-text-secondary)', marginBottom: 24, fontSize: '0.925rem' }}>
+            Your account currently has roles: <strong>{user.roles.join(', ')}</strong>. To access this workspace, enable {targetRole} mode on your RozgaarSetu profile.
           </p>
           <button
             className="btn btn-primary"

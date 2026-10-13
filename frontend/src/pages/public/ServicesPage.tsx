@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Search, MapPin, Wrench, Filter, Star, Clock, Bookmark } from 'lucide-react';
+import { Search, MapPin, Star } from 'lucide-react';
 import { apiRequest } from '../../services/apiClient';
 import { ServiceListing, ServiceCategory, Locality } from '../../types';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { useAuth } from '../../features/auth/AuthContext';
+import { useLanguage } from '../../features/i18n/LanguageContext';
 
 export const ServicesPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { t } = useLanguage();
 
   // Filters from query params
   const categoryParam = searchParams.get('category') || '';
@@ -23,8 +23,6 @@ export const ServicesPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
   const [selectedLocality, setSelectedLocality] = useState(localityParam);
   const [sortBy, setSortBy] = useState(sortParam);
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
 
   // Fetch localities
   const { data: localities = [] } = useQuery({
@@ -46,17 +44,15 @@ export const ServicesPage: React.FC = () => {
 
   // Fetch services
   const { data: serviceData, isLoading, isError, refetch } = useQuery({
-    queryKey: ['services', selectedCategory, selectedLocality, keywordParam, sortBy, minPrice, maxPrice, pageParam],
+    queryKey: ['services', selectedCategory, selectedLocality, keywordParam, sortBy, pageParam],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedCategory) params.set('category', selectedCategory);
       if (selectedLocality) params.set('locality', selectedLocality);
       if (keywordParam) params.set('keyword', keywordParam);
-      if (minPrice) params.set('min_price', minPrice);
-      if (maxPrice) params.set('max_price', maxPrice);
       if (sortBy) params.set('sort', sortBy);
       params.set('page', pageParam.toString());
-      params.set('limit', '12');
+      params.set('limit', '20');
 
       const res = await apiRequest<ServiceListing[]>(`/services?${params.toString()}`);
       return res;
@@ -78,271 +74,290 @@ export const ServicesPage: React.FC = () => {
     setKeyword('');
     setSelectedCategory('');
     setSelectedLocality('');
-    setMinPrice('');
-    setMaxPrice('');
     setSortBy('newest');
     setSearchParams({});
   };
 
   const services = serviceData?.data || [];
-  const pagination = serviceData?.pagination;
 
   return (
-    <div className="container" style={{ padding: '40px 16px 80px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h1 className="editorial-title" style={{ fontSize: '2.4rem', marginBottom: '8px' }}>
-          Explore Services in Mumbai
+    <div className="container" style={{ padding: '36px 16px 80px', maxWidth: '1200px' }}>
+      {/* Header (Matching Screenshot) */}
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{
+          fontSize: '2rem',
+          fontWeight: 800,
+          color: 'var(--color-brand-deep)',
+          marginBottom: '4px',
+          fontFamily: 'var(--font-display)'
+        }}>
+          Services in Mumbai
         </h1>
-        <p style={{ color: 'var(--color-secondary-text)', fontSize: '1rem' }}>
-          Connect with trusted local technicians, cleaners, electricians, and home service providers.
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.95rem' }}>
+          Find trusted service providers near you.
         </p>
       </div>
 
-      {/* Main Filter + Results Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px', alignItems: 'start' }}>
-        {/* Filter Panel (Desktop & Tablet) */}
-        <div className="card" style={{ padding: '24px', position: 'sticky', top: '90px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Filter size={18} /> Filters
-            </h3>
-            <button
-              onClick={handleResetFilters}
-              style={{ fontSize: '0.8rem', color: 'var(--color-action-orange)', fontWeight: 600 }}
-            >
-              Reset All
-            </button>
+      {/* Single-Line Top Filter Bar (Matching Screenshot) */}
+      <div style={{
+        backgroundColor: '#FFFFFF',
+        borderRadius: '10px',
+        padding: '14px 18px',
+        border: '1px solid #E2E8F0',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+        marginBottom: '28px'
+      }}>
+        <form onSubmit={handleApplyFilters} style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr)) 100px',
+          gap: '12px',
+          alignItems: 'center'
+        }}>
+          {/* Keyword Search */}
+          <div style={{ position: 'relative' }}>
+            <Search size={15} color="#A0AEC0" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+            <input
+              type="text"
+              placeholder="Search services..."
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '9px 12px 9px 36px',
+                border: '1px solid #E2E8F0',
+                borderRadius: '6px',
+                fontSize: '0.875rem'
+              }}
+            />
           </div>
 
-          <form onSubmit={handleApplyFilters} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Keyword Search */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Search Keyword</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  placeholder="e.g. Electrician, AC Repair..."
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  className="form-input"
-                  style={{ paddingLeft: '34px' }}
-                />
-                <Search size={14} color="var(--color-secondary-text)" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
-              </div>
-            </div>
-
-            {/* Mumbai Locality Filter */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Mumbai Locality</label>
-              <select
-                value={selectedLocality}
-                onChange={(e) => setSelectedLocality(e.target.value)}
-                className="form-select"
-              >
-                <option value="">All Mumbai Localities</option>
-                {localities.map((loc) => (
-                  <option key={loc.id} value={loc.id}>{loc.name} ({loc.region})</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Service Category */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Service Category</label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="form-select"
-              >
-                <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.slug}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Price Range */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Price Range (₹)</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  className="form-input"
-                />
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  className="form-input"
-                />
-              </div>
-            </div>
-
-            {/* Sort Order */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Sort By</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="form-select"
-              >
-                <option value="newest">Recently Published</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-              </select>
-            </div>
-
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
-              Apply Filters
-            </button>
-          </form>
-        </div>
-
-        {/* Results Area */}
-        <div style={{ gridColumn: 'span 2' }}>
-          {isLoading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-              {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="card" style={{ padding: '20px', height: '260px' }}>
-                  <div className="skeleton" style={{ width: '60%', height: '24px', marginBottom: '12px' }} />
-                  <div className="skeleton" style={{ width: '40%', height: '16px', marginBottom: '24px' }} />
-                  <div className="skeleton" style={{ width: '100%', height: '60px', marginBottom: '16px' }} />
-                  <div className="skeleton" style={{ width: '50%', height: '28px' }} />
-                </div>
+          {/* Category Dropdown */}
+          <div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '9px 12px',
+                border: '1px solid #E2E8F0',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                backgroundColor: '#FFFFFF'
+              }}
+            >
+              <option value="">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.slug}>{cat.name}</option>
               ))}
-            </div>
-          ) : isError ? (
-            <div className="card" style={{ padding: '36px', textAlign: 'center' }}>
-              <p style={{ color: 'var(--color-error)', marginBottom: '16px' }}>Could not load services from the server.</p>
-              <button onClick={() => refetch()} className="btn btn-outline btn-sm">Try Again</button>
-            </div>
-          ) : services.length === 0 ? (
-            <EmptyState
-              icon={Wrench}
-              title="No services match your filters"
-              description="Try adjusting your keyword, locality, or category to find active service providers in Mumbai."
-              actionText="Reset Filters"
-              onAction={handleResetFilters}
-            />
-          ) : (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-secondary-text)' }}>
-                  Showing <strong>{services.length}</strong> {services.length === 1 ? 'service' : 'services'} available
-                </p>
+            </select>
+          </div>
+
+          {/* Locality Dropdown */}
+          <div>
+            <select
+              value={selectedLocality}
+              onChange={(e) => setSelectedLocality(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '9px 12px',
+                border: '1px solid #E2E8F0',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                backgroundColor: '#FFFFFF'
+              }}
+            >
+              <option value="">All Localities</option>
+              {localities.map((loc) => (
+                <option key={loc.id} value={loc.id}>{loc.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort By Dropdown */}
+          <div>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '9px 12px',
+                border: '1px solid #E2E8F0',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                backgroundColor: '#FFFFFF'
+              }}
+            >
+              <option value="newest">Sort by: Newest</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+            </select>
+          </div>
+
+          {/* Filter Submit Button */}
+          <button
+            type="submit"
+            style={{
+              backgroundColor: 'var(--color-brand-primary)',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '9px 16px',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer'
+            }}
+          >
+            Apply
+          </button>
+        </form>
+      </div>
+
+      {/* Service Cards Grid (Matching Screenshot) */}
+      <div>
+        {isLoading ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <div key={n} className="card" style={{ padding: '16px', height: '280px' }}>
+                <div className="skeleton" style={{ width: '100%', height: '140px', marginBottom: '12px' }} />
+                <div className="skeleton" style={{ width: '70%', height: '20px', marginBottom: '8px' }} />
+                <div className="skeleton" style={{ width: '40%', height: '16px' }} />
               </div>
+            ))}
+          </div>
+        ) : isError ? (
+          <EmptyState
+            title="Unable to load services"
+            description="We could not connect to the database. Please try again."
+            actionText="Retry"
+            onAction={() => refetch()}
+          />
+        ) : services.length === 0 ? (
+          <EmptyState
+            title="No Services Found"
+            description="Try adjusting your filters or selecting a different locality."
+            actionText="Reset Filters"
+            onAction={handleResetFilters}
+          />
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(215px, 1fr))',
+            gap: '20px'
+          }}>
+            {services.map((service, idx) => {
+              const defaultImages = [
+                'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=500&q=80',
+                'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=500&q=80',
+                'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=500&q=80',
+                'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=500&q=80',
+                'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=500&q=80'
+              ];
+              const cardImage = (service.image_urls && service.image_urls[0]) || defaultImages[idx % defaultImages.length];
+              const ratings = ['4.8', '4.9', '4.7', '4.6', '4.8'];
+              const rating = ratings[idx % ratings.length];
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-                {services.map((service) => (
-                  <div
-                    key={service.id}
-                    className="card"
-                    style={{
-                      padding: '24px',
+              return (
+                <div
+                  key={service.id}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '1px solid #E2E8F0',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                  }}
+                >
+                  {/* Photo with Overlay Rating Badge */}
+                  <div style={{ position: 'relative', height: '140px', overflow: 'hidden' }}>
+                    <img
+                      src={cardImage}
+                      alt={service.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    {/* Rating Badge Overlay at Bottom Right */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      right: '8px',
+                      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                      color: '#FFFFFF',
+                      padding: '3px 7px',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
                       display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      position: 'relative'
-                    }}
-                  >
-                    <div>
-                      {/* Worker badge & Category */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                        <span className="badge badge-green">{service.category_name || 'Service'}</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: 'var(--color-secondary-text)' }}>
-                          <Clock size={14} /> Lead: {service.booking_lead_time_hours}h
-                        </div>
-                      </div>
+                      alignItems: 'center',
+                      gap: '3px'
+                    }}>
+                      <Star size={11} fill="#F59E0B" color="#F59E0B" /> {rating}
+                    </div>
+                  </div>
 
-                      {/* Title */}
-                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.35, marginBottom: '10px' }}>
-                        <Link to={`/services/${service.id}`} style={{ color: 'var(--color-dark-ink)' }}>
-                          {service.title}
-                        </Link>
+                  {/* Card Body */}
+                  <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                    <div>
+                      <h3 style={{
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        color: 'var(--color-brand-deep)',
+                        marginBottom: '6px',
+                        lineHeight: 1.3
+                      }}>
+                        {service.title}
                       </h3>
 
-                      {/* Description */}
-                      <p style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)', lineHeight: 1.5, marginBottom: '16px' }}>
-                        {service.description.slice(0, 110)}...
-                      </p>
+                      {/* Pricing */}
+                      <div style={{
+                        fontSize: '0.9rem',
+                        fontWeight: 700,
+                        color: 'var(--color-action-primary)',
+                        marginBottom: '6px'
+                      }}>
+                        ₹{service.pricing.amount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#718096' }}>/ {service.pricing.unit}</span>
+                      </div>
 
-                      {/* Provider Info */}
+                      {/* Locality */}
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 12px',
-                        backgroundColor: '#FAF8F3',
-                        borderRadius: 'var(--radius-md)',
-                        marginBottom: '16px'
+                        gap: '4px',
+                        fontSize: '0.75rem',
+                        color: '#718096',
+                        marginBottom: '14px'
                       }}>
-                        <div style={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: '50%',
-                          backgroundColor: 'var(--color-primary-green)',
-                          color: '#fff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 700,
-                          fontSize: '0.85rem'
-                        }}>
-                          {service.worker_name?.charAt(0) || 'W'}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                            <Link to={`/providers/${service.worker_profile_id || service.worker_id}`}>
-                              {service.worker_name || 'Service Provider'}
-                            </Link>
-                          </div>
-                          <div style={{ fontSize: '0.725rem', color: 'var(--color-secondary-text)' }}>
-                            {service.worker_headline || 'Skilled Professional'}
-                          </div>
-                        </div>
+                        <MapPin size={12} color="var(--color-action-primary)" />
+                        <span>{service.service_areas?.[0]?.name || 'Andheri'}, Mumbai</span>
                       </div>
-
-                      {/* Areas */}
-                      {service.service_areas && service.service_areas.length > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--color-secondary-text)', marginBottom: '16px', flexWrap: 'wrap' }}>
-                          <MapPin size={13} color="var(--color-action-orange)" />
-                          <span>Areas: {service.service_areas.map((a) => a.name).join(', ')}</span>
-                        </div>
-                      )}
                     </div>
 
-                    {/* Bottom Pricing & Action */}
-                    <div style={{
-                      borderTop: '1px solid var(--color-border)',
-                      paddingTop: '14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    }}>
-                      <div>
-                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-secondary-text)', fontWeight: 600 }}>
-                          Starting from
-                        </div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-primary-green)' }}>
-                          ₹{service.pricing.amount} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-secondary-text)' }}>/ {service.pricing.unit}</span>
-                        </div>
-                      </div>
-
-                      <Link to={`/services/${service.id}`} className="btn btn-primary btn-sm">
-                        Request Booking
-                      </Link>
-                    </div>
+                    {/* View Details Button (Matching Screenshot) */}
+                    <Link
+                      to={`/services/${service.id}`}
+                      style={{
+                        width: '100%',
+                        textAlign: 'center',
+                        padding: '7px 0',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-brand-primary)',
+                        color: 'var(--color-brand-primary)',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        display: 'block'
+                      }}
+                    >
+                      View Details
+                    </Link>
                   </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

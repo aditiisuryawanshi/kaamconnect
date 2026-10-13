@@ -43,11 +43,11 @@ export const CustomerBookingsPage: React.FC = () => {
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto' }}>
       <div style={{ marginBottom: '28px' }}>
-        <h2 className="editorial-title" style={{ fontSize: '1.8rem', marginBottom: '6px' }}>
+        <h2 className="brand-title" style={{ fontSize: '1.8rem', marginBottom: '6px' }}>
           My Service Bookings
         </h2>
-        <p style={{ color: 'var(--color-secondary-text)', fontSize: '0.9rem' }}>
-          View scheduled appointments, track confirmation status, and communicate with service providers.
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
+          Track scheduled appointments, technician acceptance, work progress, and verified completion.
         </p>
       </div>
 
@@ -70,10 +70,11 @@ export const CustomerBookingsPage: React.FC = () => {
               fontSize: '0.85rem',
               fontWeight: 600,
               border: '1px solid var(--color-border)',
-              backgroundColor: statusFilter === tab.value ? 'var(--color-primary-green)' : 'var(--color-white)',
-              color: statusFilter === tab.value ? '#fff' : 'var(--color-dark-ink)',
+              backgroundColor: statusFilter === tab.value ? 'var(--color-brand-primary)' : 'var(--color-surface-white)',
+              color: statusFilter === tab.value ? '#fff' : 'var(--color-text-ink)',
               cursor: 'pointer',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              transition: 'all 0.15s ease'
             }}
           >
             {tab.label}
@@ -102,54 +103,54 @@ export const CustomerBookingsPage: React.FC = () => {
               <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', marginBottom: '14px' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-secondary-text)' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-secondary)' }}>
                       #{bkg.booking_reference}
                     </span>
                     <StatusBadge status={bkg.status} />
                   </div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '6px' }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '6px', color: 'var(--color-brand-deep)' }}>
                     {bkg.service_title_snapshot}
                   </h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)' }}>
-                    Provider: <strong>{bkg.worker_name}</strong> {bkg.worker_phone ? `(📞 ${bkg.worker_phone})` : '(Phone unlocked upon confirmation)'}
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+                    Provider: <strong style={{ color: 'var(--color-brand-primary)' }}>{bkg.worker_name}</strong> {bkg.worker_phone ? `(📞 ${bkg.worker_phone})` : '(Phone unlocked upon confirmation)'}
                   </p>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-primary-green)' }}>
+                  <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-brand-primary)' }}>
                     ₹{bkg.pricing_snapshot.estimated_total}
                   </span>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
                     Estimated Total Fee
                   </div>
                 </div>
               </div>
 
               {/* Schedule and Locality */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', backgroundColor: '#FAF8F3', padding: '14px', borderRadius: 'var(--radius-md)', marginBottom: '16px', fontSize: '0.85rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', backgroundColor: 'var(--color-surface-tint)', padding: '14px', borderRadius: 'var(--radius-md)', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid #C7D9ED' }}>
                 <div>
-                  <span style={{ color: 'var(--color-secondary-text)', fontSize: '0.75rem' }}>DATE & TIME</span>
+                  <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', fontWeight: 700 }}>DATE & TIME</span>
                   <p style={{ fontWeight: 600 }}>{bkg.scheduled_date} • {bkg.scheduled_time_slot}</p>
                 </div>
                 <div>
-                  <span style={{ color: 'var(--color-secondary-text)', fontSize: '0.75rem' }}>AREA</span>
+                  <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', fontWeight: 700 }}>MUMBAI REGION</span>
                   <p style={{ fontWeight: 600 }}>{bkg.locality_name}</p>
                 </div>
                 <div>
-                  <span style={{ color: 'var(--color-secondary-text)', fontSize: '0.75rem' }}>PAYMENT STATUS</span>
-                  <p style={{ fontWeight: 600, color: 'var(--color-primary-green)' }}>Direct Pay (Cash/UPI)</p>
+                  <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', fontWeight: 700 }}>PAYMENT TERMS</span>
+                  <p style={{ fontWeight: 600, color: 'var(--color-brand-primary)' }}>Pay Direct (Cash / UPI)</p>
                 </div>
               </div>
 
               {bkg.cancellation_reason && (
-                <div style={{ backgroundColor: 'var(--color-error-bg)', color: 'var(--color-error)', padding: '10px 14px', borderRadius: 'var(--radius-md)', fontSize: '0.825rem', marginBottom: '14px' }}>
+                <div style={{ backgroundColor: 'var(--color-error-bg)', color: 'var(--color-error)', padding: '10px 14px', borderRadius: 'var(--radius-md)', fontSize: '0.825rem', marginBottom: '14px', border: '1px solid #FECACA' }}>
                   <strong>Cancellation Reason:</strong> {bkg.cancellation_reason}
                 </div>
               )}
 
               {/* Action buttons */}
               <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-secondary-text)' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
                   Created on {new Date(bkg.created_at).toLocaleDateString()}
                 </span>
 
@@ -157,7 +158,7 @@ export const CustomerBookingsPage: React.FC = () => {
                   <button
                     onClick={() => setCancelingBookingId(bkg.id)}
                     className="btn btn-outline btn-sm"
-                    style={{ color: 'var(--color-error)' }}
+                    style={{ color: 'var(--color-error)', borderColor: '#FECACA' }}
                   >
                     Cancel Booking
                   </button>
@@ -181,8 +182,8 @@ export const CustomerBookingsPage: React.FC = () => {
           padding: '16px'
         }}>
           <div className="card" style={{ maxWidth: '440px', width: '100%', padding: '28px' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '10px' }}>Cancel Booking</h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '10px', color: 'var(--color-brand-deep)' }}>Cancel Booking</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '16px' }}>
               Please specify the reason for cancellation. The technician will be notified immediately.
             </p>
             <div className="form-group">

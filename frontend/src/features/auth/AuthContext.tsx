@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiRequest } from '../../services/apiClient';
+import { apiRequest, getStoredToken, setStoredToken, removeStoredToken } from '../../services/apiClient';
 import { User, UserRole } from '../../types';
 
 interface AuthContextType {
@@ -18,20 +18,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('kaamconnect_token'));
+  const [token, setToken] = useState<string | null>(() => getStoredToken());
   const [user, setUser] = useState<User | null>(null);
   const [activeRole, setActiveRoleState] = useState<UserRole>(() => {
-    return (localStorage.getItem('kaamconnect_active_role') as UserRole) || 'customer';
+    const saved = localStorage.getItem('rozgaarsetu_active_role') || localStorage.getItem('kaamconnect_active_role');
+    return (saved as UserRole) || 'customer';
   });
   const [isLoading, setIsLoading] = useState(true);
 
   const setActiveRole = (role: UserRole) => {
     setActiveRoleState(role);
-    localStorage.setItem('kaamconnect_active_role', role);
+    localStorage.setItem('rozgaarsetu_active_role', role);
   };
 
   const refreshUser = async () => {
-    const curToken = localStorage.getItem('kaamconnect_token');
+    const curToken = getStoredToken();
     if (!curToken) {
       setUser(null);
       setIsLoading(false);
@@ -42,14 +43,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await apiRequest<User>('/auth/me');
       setUser(res.data);
       if (res.data.roles && res.data.roles.length > 0) {
-        // If current activeRole is not in user roles, switch to primary role
-        const curRole = localStorage.getItem('kaamconnect_active_role') as UserRole;
+        const curRole = (localStorage.getItem('rozgaarsetu_active_role') || localStorage.getItem('kaamconnect_active_role')) as UserRole;
         if (!curRole || !res.data.roles.includes(curRole)) {
           setActiveRole(res.data.roles[0]);
         }
       }
     } catch {
-      localStorage.removeItem('kaamconnect_token');
+      removeStoredToken();
       setToken(null);
       setUser(null);
     } finally {
@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       method: 'POST',
       body: JSON.stringify(credentials),
     });
-    localStorage.setItem('kaamconnect_token', res.data.token);
+    setStoredToken(res.data.token);
     setToken(res.data.token);
     setUser(res.data.user);
     if (res.data.user.roles && res.data.user.roles.length > 0) {
@@ -79,14 +79,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       method: 'POST',
       body: JSON.stringify(data),
     });
-    localStorage.setItem('kaamconnect_token', res.data.token);
+    setStoredToken(res.data.token);
     setToken(res.data.token);
     setUser(res.data.user);
     setActiveRole(data.role as UserRole);
   };
 
   const logout = () => {
-    localStorage.removeItem('kaamconnect_token');
+    removeStoredToken();
+    localStorage.removeItem('rozgaarsetu_active_role');
     localStorage.removeItem('kaamconnect_active_role');
     setToken(null);
     setUser(null);
@@ -98,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       method: 'POST',
       body: JSON.stringify({ role }),
     });
-    localStorage.setItem('kaamconnect_token', res.data.token);
+    setStoredToken(res.data.token);
     setToken(res.data.token);
     await refreshUser();
     setActiveRole(role as UserRole);

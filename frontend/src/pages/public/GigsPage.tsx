@@ -5,9 +5,11 @@ import { Calendar, MapPin, Search, Filter, Clock, Users, ArrowRight } from 'luci
 import { apiRequest } from '../../services/apiClient';
 import { Gig, Locality } from '../../types';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { useLanguage } from '../../features/i18n/LanguageContext';
 
 export const GigsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useLanguage();
 
   const localityParam = searchParams.get('locality') || '';
   const keywordParam = searchParams.get('keyword') || '';
@@ -36,7 +38,7 @@ export const GigsPage: React.FC = () => {
       if (keywordParam) params.set('keyword', keywordParam);
       if (minPay) params.set('min_pay', minPay);
       if (sortBy) params.set('sort', sortBy);
-      params.set('limit', '12');
+      params.set('limit', '20');
 
       const res = await apiRequest<Gig[]>(`/gigs?${params.toString()}`);
       return res;
@@ -65,11 +67,11 @@ export const GigsPage: React.FC = () => {
   return (
     <div className="container" style={{ padding: '40px 16px 80px' }}>
       <div style={{ marginBottom: '32px' }}>
-        <h1 className="editorial-title" style={{ fontSize: '2.4rem', marginBottom: '8px' }}>
+        <h1 className="brand-title" style={{ fontSize: '2.4rem', marginBottom: '8px' }}>
           Temporary Gigs & Shift Work in Mumbai
         </h1>
-        <p style={{ color: 'var(--color-secondary-text)', fontSize: '1rem' }}>
-          Find flexible short-term opportunities, event assistance, warehouse shifts, and daily payout work across Mumbai region.
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: '1rem' }}>
+          Find flexible short-term opportunities, event assistance, warehouse shifts, and daily payout work across the Mumbai region.
         </p>
       </div>
 
@@ -77,10 +79,10 @@ export const GigsPage: React.FC = () => {
         {/* Filters */}
         <div className="card" style={{ padding: '24px', position: 'sticky', top: '90px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Filter size={18} /> Shift Filters
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-brand-deep)' }}>
+              <Filter size={18} color="var(--color-brand-primary)" /> Shift Filters
             </h3>
-            <button onClick={handleReset} style={{ fontSize: '0.8rem', color: 'var(--color-action-orange)', fontWeight: 600 }}>
+            <button onClick={handleReset} style={{ fontSize: '0.8rem', color: 'var(--color-action-primary)', fontWeight: 600 }}>
               Reset
             </button>
           </div>
@@ -97,7 +99,7 @@ export const GigsPage: React.FC = () => {
                   className="form-input"
                   style={{ paddingLeft: '34px' }}
                 />
-                <Search size={14} color="var(--color-secondary-text)" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+                <Search size={14} color="var(--color-text-secondary)" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
               </div>
             </div>
 
@@ -172,7 +174,7 @@ export const GigsPage: React.FC = () => {
             />
           ) : (
             <>
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-secondary-text)', marginBottom: '20px' }}>
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>
                 Showing <strong>{gigs.length}</strong> active gig opportunities
               </p>
 
@@ -191,23 +193,23 @@ export const GigsPage: React.FC = () => {
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                         <span className="badge badge-neutral">
-                          <MapPin size={12} color="var(--color-action-orange)" /> {gig.locality_name || 'Mumbai'}
+                          <MapPin size={12} color="var(--color-action-primary)" /> {gig.locality_name || 'Mumbai'}
                         </span>
                         <div style={{ textAlign: 'right' }}>
-                          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-primary-green)' }}>
+                          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-action-primary)' }}>
                             ₹{gig.pay_amount}
                           </span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)', marginLeft: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginLeft: '4px' }}>
                             / {gig.pay_unit}
                           </span>
                         </div>
                       </div>
 
                       <h3 style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.35, marginBottom: '8px' }}>
-                        <Link to={`/gigs/${gig.id}`}>{gig.title}</Link>
+                        <Link to={`/gigs/${gig.id}`} style={{ color: 'var(--color-brand-deep)' }}>{gig.title}</Link>
                       </h3>
 
-                      <p style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)', lineHeight: 1.5, marginBottom: '16px' }}>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: 1.5, marginBottom: '16px' }}>
                         {gig.description.slice(0, 110)}...
                       </p>
 
@@ -216,25 +218,26 @@ export const GigsPage: React.FC = () => {
                         flexDirection: 'column',
                         gap: '6px',
                         fontSize: '0.8rem',
-                        backgroundColor: '#FAF8F3',
+                        backgroundColor: 'var(--color-surface-tint)',
                         padding: '12px',
                         borderRadius: 'var(--radius-md)',
-                        marginBottom: '16px'
+                        marginBottom: '16px',
+                        border: '1px solid #C7D9ED'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Clock size={14} color="var(--color-primary-green)" />
+                          <Clock size={14} color="var(--color-brand-primary)" />
                           <span>Date: <strong>{gig.shift_date}</strong> ({gig.start_time} - {gig.end_time})</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Users size={14} color="var(--color-action-orange)" />
-                          <span>Openings: <strong>{gig.openings} positions available</strong></span>
+                          <Users size={14} color="var(--color-action-primary)" />
+                          <span>Openings: <strong style={{ color: gig.openings > 0 ? 'var(--color-success)' : 'var(--color-error)' }}>{gig.openings} positions available</strong></span>
                         </div>
                       </div>
 
                       {/* Skills */}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                         {gig.required_skills?.map((s, idx) => (
-                          <span key={idx} style={{ fontSize: '0.725rem', backgroundColor: '#EDEAE1', padding: '3px 8px', borderRadius: '4px', color: 'var(--color-dark-ink)' }}>
+                          <span key={idx} style={{ fontSize: '0.725rem', backgroundColor: '#E2E8F0', padding: '3px 8px', borderRadius: '4px', color: 'var(--color-text-ink)' }}>
                             {s}
                           </span>
                         ))}
@@ -242,7 +245,7 @@ export const GigsPage: React.FC = () => {
                     </div>
 
                     <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
                         Posted by {gig.employer_name || 'Employer'}
                       </span>
                       <Link to={`/gigs/${gig.id}`} className="btn btn-primary btn-sm">

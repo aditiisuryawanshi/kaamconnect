@@ -52,8 +52,8 @@ export const ProviderProfilePage: React.FC = () => {
   if (isError || !provider) {
     return (
       <div className="container" style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: 12 }}>Provider Profile Unavailable</h2>
-        <p style={{ color: 'var(--color-secondary-text)', marginBottom: 20 }}>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: 12, color: 'var(--color-brand-deep)' }}>Provider Profile Unavailable</h2>
+        <p style={{ color: 'var(--color-text-secondary)', marginBottom: 20 }}>
           This provider profile does not exist or has been made private.
         </p>
         <Link to="/services" className="btn btn-primary">Discover Other Providers</Link>
@@ -71,7 +71,7 @@ export const ProviderProfilePage: React.FC = () => {
               width: 80,
               height: 80,
               borderRadius: '50%',
-              backgroundColor: 'var(--color-primary-green)',
+              backgroundColor: 'var(--color-brand-primary)',
               color: '#fff',
               display: 'flex',
               alignItems: 'center',
@@ -83,18 +83,18 @@ export const ProviderProfilePage: React.FC = () => {
               {provider.user_name?.charAt(0) || 'P'}
             </div>
             <div>
-              <h1 className="editorial-title" style={{ fontSize: '1.85rem', marginBottom: '6px' }}>
+              <h1 className="brand-title" style={{ fontSize: '1.85rem', marginBottom: '6px' }}>
                 {provider.user_name}
               </h1>
-              <p style={{ fontSize: '1rem', color: 'var(--color-secondary-text)', marginBottom: '8px' }}>
+              <p style={{ fontSize: '1rem', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
                 {provider.headline || 'Verified Service Professional'}
               </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.85rem', color: 'var(--color-secondary-text)', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.85rem', color: 'var(--color-text-secondary)', flexWrap: 'wrap' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Award size={16} color="var(--color-action-orange)" /> {provider.experience_years} Years Experience
+                  <Award size={16} color="var(--color-action-primary)" /> {provider.experience_years} Years Experience
                 </span>
-                <span className="badge badge-green">
-                  <Shield size={12} /> Active on KaamConnect
+                <span className="badge badge-navy">
+                  <Shield size={12} /> Verified on RozgaarSetu
                 </span>
               </div>
             </div>
@@ -106,7 +106,7 @@ export const ProviderProfilePage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              color: 'var(--color-secondary-text)',
+              color: 'var(--color-text-secondary)',
               fontSize: '0.8rem',
               padding: '6px 12px',
               borderRadius: 'var(--radius-sm)',
@@ -122,8 +122,8 @@ export const ProviderProfilePage: React.FC = () => {
         {/* Left Column: Bio & Skills */}
         <div>
           <div className="card" style={{ padding: '24px', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '12px' }}>About Professional</h3>
-            <p style={{ fontSize: '0.925rem', lineHeight: 1.6, color: 'var(--color-dark-ink)', whiteSpace: 'pre-line' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '12px', color: 'var(--color-brand-deep)' }}>About Professional</h3>
+            <p style={{ fontSize: '0.925rem', lineHeight: 1.6, color: 'var(--color-text-ink)', whiteSpace: 'pre-line' }}>
               {provider.bio || 'Experienced local technician dedicated to quality household services in Mumbai.'}
             </p>
           </div>
@@ -131,7 +131,7 @@ export const ProviderProfilePage: React.FC = () => {
           {/* Skills */}
           {provider.skills && provider.skills.length > 0 && (
             <div className="card" style={{ padding: '24px', marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '14px' }}>Expertise & Skills</h3>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '14px', color: 'var(--color-brand-deep)' }}>Expertise & Skills</h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {provider.skills.map((skill, idx) => (
                   <span key={idx} className="badge badge-neutral" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
@@ -145,11 +145,11 @@ export const ProviderProfilePage: React.FC = () => {
           {/* Localities */}
           {provider.preferred_localities && provider.preferred_localities.length > 0 && (
             <div className="card" style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '14px' }}>Service Areas</h3>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '14px', color: 'var(--color-brand-deep)' }}>Service Areas</h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {provider.preferred_localities.map((loc) => (
-                  <span key={loc.id} className="badge badge-green" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
-                    <MapPin size={13} /> {loc.name}
+                  <span key={loc.id} className="badge badge-navy" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+                    <MapPin size={13} color="var(--color-action-primary)" /> {loc.name}
                   </span>
                 ))}
               </div>
@@ -159,12 +159,12 @@ export const ProviderProfilePage: React.FC = () => {
 
         {/* Right Column: Published Service Listings */}
         <div>
-          <h3 className="editorial-title" style={{ fontSize: '1.35rem', marginBottom: '16px' }}>
+          <h3 className="brand-title" style={{ fontSize: '1.35rem', marginBottom: '16px' }}>
             Service Offerings ({provider.listings?.length || 0})
           </h3>
 
           {!provider.listings || provider.listings.length === 0 ? (
-            <div className="card" style={{ padding: '24px', textAlign: 'center', color: 'var(--color-secondary-text)' }}>
+            <div className="card" style={{ padding: '24px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
               No active public service listings at this time.
             </div>
           ) : (
@@ -173,17 +173,17 @@ export const ProviderProfilePage: React.FC = () => {
                 <div key={srv.id} className="card" style={{ padding: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                     <h4 style={{ fontSize: '1.1rem', fontWeight: 700 }}>
-                      <Link to={`/services/${srv.id}`}>{srv.title}</Link>
+                      <Link to={`/services/${srv.id}`} style={{ color: 'var(--color-brand-deep)' }}>{srv.title}</Link>
                     </h4>
-                    <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-primary-green)' }}>
-                      ₹{srv.pricing.amount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-secondary-text)' }}>/ {srv.pricing.unit}</span>
+                    <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-brand-primary)' }}>
+                      ₹{srv.pricing.amount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-secondary)' }}>/ {srv.pricing.unit}</span>
                     </span>
                   </div>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)', lineHeight: 1.5, marginBottom: '14px' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: 1.5, marginBottom: '14px' }}>
                     {srv.description.slice(0, 120)}...
                   </p>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
                       Lead time: {srv.booking_lead_time_hours}h
                     </span>
                     <Link to={`/services/${srv.id}`} className="btn btn-primary btn-sm">
@@ -213,9 +213,9 @@ export const ProviderProfilePage: React.FC = () => {
             {reportSubmitted ? (
               <div style={{ textAlign: 'center' }}>
                 <Check size={40} color="var(--color-success)" style={{ margin: '0 auto 12px' }} />
-                <h3 style={{ fontSize: '1.25rem', marginBottom: 8 }}>Report Submitted</h3>
-                <p style={{ color: 'var(--color-secondary-text)', fontSize: '0.9rem', marginBottom: 20 }}>
-                  Thank you for keeping KaamConnect safe. Our Mumbai moderation team will inspect this profile.
+                <h3 style={{ fontSize: '1.25rem', marginBottom: 8, color: 'var(--color-brand-deep)' }}>Report Submitted</h3>
+                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 20 }}>
+                  Thank you for keeping RozgaarSetu safe. Our Mumbai moderation team will inspect this profile.
                 </p>
                 <button onClick={() => { setReportModalOpen(false); setReportSubmitted(false); }} className="btn btn-primary btn-sm">
                   Close
@@ -223,8 +223,8 @@ export const ProviderProfilePage: React.FC = () => {
               </div>
             ) : (
               <form onSubmit={handleSubmitReport}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 12 }}>Report Provider Profile</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)', marginBottom: 16 }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 12, color: 'var(--color-brand-deep)' }}>Report Provider Profile</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: 16 }}>
                   Please share why this profile violates platform safety or accuracy policies.
                 </p>
                 <div className="form-group">

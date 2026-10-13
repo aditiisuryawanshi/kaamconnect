@@ -1,11 +1,11 @@
-# KaamConnect — Full-Stack Blue-Collar Workforce & Services Marketplace
+# RozgaarSetu — A Bridge to Employment
 
 > **Mumbai Region, Maharashtra, India**  
-> *Real People. Real Work. A Stronger Mumbai.*
+> *Rozgaar Ka Naya Raasta — Real People. Real Work. Better Opportunities.*
 
-KaamConnect is a production-oriented, full-stack web marketplace engineered to connect service professionals, gig seekers, household consumers, and employers across the Mumbai Metropolitan Region. 
+RozgaarSetu is a production-oriented, full-stack web marketplace engineered to connect service professionals, gig seekers, household consumers, and employers across the Mumbai Metropolitan Region.
 
-Unlike single-domain platforms, KaamConnect provides three distinct, strictly separated marketplace products on one unified engine:
+Unlike single-domain platforms, RozgaarSetu provides three distinct, strictly separated marketplace products on one unified engine:
 1. **Task & Hourly Services**: Direct household and commercial services (Electricians, Plumbers, Cleaning, Appliance Repair, Cooking).
 2. **Shift & Gig Work**: Temporary, shift-based opportunities with fixed hourly or daily payouts (Event crew, loaders, stage hands, delivery aides).
 3. **Long-Term Employment**: Permanent and contract career opportunities with monthly salary ranges (Facility technicians, maintenance managers, drivers).
@@ -15,11 +15,13 @@ Unlike single-domain platforms, KaamConnect provides three distinct, strictly se
 
 ## Visual Identity & Design System
 
-The platform features an authentic, warm, and professional Indian marketplace aesthetic:
-- **Forest Green (`#153E35`) & Deep Green (`#10352D`)**: Trust, professionalism, and institutional stability.
-- **Saffron Orange (`#F2A541`) & Action Orange (`#F36B21`)**: Energy, vibrancy, prominent call-to-actions, and highlights.
-- **Warm Cream (`#F7F4EC`)**: Welcoming, editorial foundation avoiding clinical SaaS sterility.
-- **Dark Ink (`#202923`) & Secondary Slate (`#68736B`)**: High-contrast, accessible typography.
+The platform features a dignified, vibrant, and accessible Indian marketplace design system:
+- **Navy (`#123F73`) & Deep Navy (`#0B2F57`)**: Trust, institutional credibility, and stability.
+- **Vibrant Orange (`#FF851B`) & Soft Orange (`#FFF1E5`)**: Energy, optimism, purposeful action highlights, and active states.
+- **Clean White (`#FFFFFF`) & Light Grey (`#F5F7FA`)**: Accessible, welcoming background hierarchy.
+- **Charcoal (`#253247`) & Slate (`#667085`)**: High-contrast, readable typography.
+- **Success Green (`#16845B`)**: Verified status, confirmed bookings, and successful applications.
+- **Typography**: Plus Jakarta Sans for headings and brand typography, Inter for body/interface, and Noto Sans Devanagari for Hindi and Marathi localization.
 - **Curated Mumbai Context**: 13 initial launch localities spanning Western Suburbs, Central Suburbs, South Central, Thane, and Navi Mumbai.
 
 ---
@@ -28,19 +30,20 @@ The platform features an authentic, warm, and professional Indian marketplace ae
 
 ### Frontend
 - **Framework**: React 19 with TypeScript
-- **Tooling**: Vite with strict TypeScript (`tsc -b`)
+- **Tooling**: Vite with strict TypeScript compilation (`tsc -b`)
 - **Routing**: React Router 7 with role-based layout guards (`PublicLayout`, `WorkerLayout`, `CustomerLayout`, `EmployerLayout`, `AdminLayout`)
 - **State Management**: TanStack Query (React Query) for robust server-state caching and synchronization
 - **Forms & Validation**: React Hook Form with Zod schemas
+- **Localization**: Multi-language support (English, Hindi हिन्दी, Marathi मराठी) with instant switcher
 - **Icons**: Lucide React
-- **Design System**: Centralized design tokens (`tokens.css`) and modular responsive styling (`global.css`)
+- **Design System**: Global design tokens (`tokens.css`) and modular responsive styling (`global.css`)
 - **Testing**: Vitest & React Testing Library
 
 ### Backend
 - **Language & Framework**: Python 3.14 with Flask modular Blueprints (`/api/v1`)
 - **Architecture**: Service-layer pattern separating controllers, business validation, and data persistence
-- **Security & Auth**: PyJWT for stateless bearer authentication, Werkzeug security for PBKDF2 password hashing, fine-grained RBAC decorators (`@require_auth`, `@require_role`, `@require_any_role`)
-- **Validation**: Pydantic v2 models and custom sanitizers (E.164 phone & lowercase email normalizers)
+- **Security & Auth**: PyJWT for stateless bearer authentication, Werkzeug security for scrypt password hashing, fine-grained RBAC decorators (`@auth_required`, `@roles_required`)
+- **Validation**: Pydantic schemas and custom sanitizers (E.164 phone & lowercase email normalizers)
 - **Database Access**: PyMongo with MongoDB replica set / Atlas compatibility
 - **Testing**: Pytest with unit, integration, and full 8-stage end-to-end user journeys
 
@@ -50,44 +53,12 @@ The platform features an authentic, warm, and professional Indian marketplace ae
 
 ---
 
-## Project Structure
+## Quick Launch Scripts (Windows)
 
-```
-kaamconnect/
-├── backend/
-│   ├── app/
-│   │   ├── common/             # Error handlers, BSON serializers, validators, RBAC decorators
-│   │   ├── database/           # MongoDB index initializers
-│   │   ├── models/             # Pydantic data schemas
-│   │   ├── routes/             # Modular Flask blueprints (auth, services, gigs, jobs, etc.)
-│   │   ├── services/           # Business logic service layer
-│   │   ├── config.py           # Config classes (Dev, Testing, Prod)
-│   │   └── extensions.py       # PyMongo database connection client
-│   ├── tests/
-│   │   ├── conftest.py         # Pytest test fixtures and Flask test client
-│   │   ├── test_auth.py        # Authentication & RBAC unit tests
-│   │   ├── test_services_bookings.py # Services & booking state machine tests
-│   │   ├── test_gigs_jobs_applications.py # Gigs, jobs & capacity tests
-│   │   ├── test_admin_safety.py# Moderation, reports & audit log tests
-│   │   └── test_e2e_journeys.py# Complete 8-stage live user journeys
-│   ├── seed.py                 # Seeds Mumbai localities, categories & demo accounts
-│   ├── run.py                  # Local backend entrypoint
-│   └── requirements.txt        # Backend dependencies
-├── frontend/
-│   ├── src/
-│   │   ├── app/                # Router definition and role-based RouteGuards
-│   │   ├── components/         # Shared UI components, Navbar, Footer, Layouts
-│   │   ├── features/auth/      # AuthContext, role switching, login/register state
-│   │   ├── pages/              # Public, Worker, Customer, Employer, and Admin views
-│   │   ├── services/           # Centralized API fetch client
-│   │   ├── styles/             # tokens.css (color, typography, spacing) & global.css
-│   │   └── types/              # Centralized TypeScript definitions
-│   ├── test/                   # Vitest component unit tests
-│   ├── index.html              # HTML shell
-│   ├── package.json            # Node dependencies
-│   └── vite.config.ts          # Vite configuration with `/api` proxy
-└── README.md                   # System documentation
-```
+Convenient one-click launcher scripts are located in the project root:
+- **`start_all.bat`**: Launches both Backend (Port 5000) and Frontend (Port 5173) in dedicated console windows.
+- **`start_backend.bat`**: Activates Python virtualenv and starts Flask server.
+- **`start_frontend.bat`**: Starts Vite development server with hot module reload.
 
 ---
 
@@ -96,7 +67,7 @@ kaamconnect/
 ### 1. Prerequisites
 - **Node.js** (v18+ recommended)
 - **Python** (v3.10+ recommended)
-- **MongoDB** (Local instance on `mongodb://localhost:27017` or a MongoDB Atlas connection URI)
+- **MongoDB** (Local instance on `mongodb://localhost:27017` or MongoDB Atlas URI)
 
 ---
 
@@ -123,10 +94,13 @@ kaamconnect/
    pip install -r requirements.txt
    ```
 
-4. Environment variables (`backend/.env` optional, sensible defaults provided):
+4. Environment variables (`backend/.env`):
    ```env
-   MONGO_URI=mongodb://localhost:27017/kaamconnect
-   JWT_SECRET_KEY=kaamconnect-production-secret-key-change-in-prod
+   MONGODB_URI=mongodb://localhost:27017
+   MONGODB_DATABASE=rozgaarsetu
+   SECRET_KEY=rozgaarsetu-dev-super-secret-key-2026-mumbai
+   JWT_SECRET_KEY=rozgaarsetu-dev-super-secret-key-2026-mumbai
+   FRONTEND_ORIGIN=http://localhost:5173
    FLASK_ENV=development
    PORT=5000
    ```
@@ -170,10 +144,11 @@ All demo accounts share the password: **`DemoPassword123`**
 
 | Role | Email | Name | Capabilities |
 | :--- | :--- | :--- | :--- |
-| **Worker** | `worker@demo.kaamconnect.in` | Ramesh Shinde | Offer services, view incoming bookings, apply to gigs & jobs, profile wizard |
-| **Customer** | `customer@demo.kaamconnect.in` | Priya Sharma | Search Mumbai services, book professionals, track bookings, file safety reports |
-| **Employer** | `employer@demo.kaamconnect.in` | Vikram Patel | Post shift gigs, post long-term jobs, manage applicants, shortlist & select candidates |
-| **Admin** | `admin@demo.kaamconnect.in` | Sunita Deshmukh | Moderation queue, user suspension/reactivation, safety reports, system audit logs |
+| **Worker** | `worker@demo.rozgaarsetu.in` | Ramesh Shinde | Offer services, view incoming bookings, apply to gigs & jobs, profile wizard |
+| **Worker 2** | `worker2@demo.rozgaarsetu.in` | Sunita Kamble | Deep cleaning specialist, view services and shift schedules |
+| **Customer** | `customer@demo.rozgaarsetu.in` | Pooja Sharma | Search Mumbai services, book professionals, track bookings, file safety reports |
+| **Employer** | `employer@demo.rozgaarsetu.in` | Vikram Sethi | Post shift gigs, post long-term jobs, manage applicants, shortlist & select candidates |
+| **Admin** | `admin@demo.rozgaarsetu.in` | Admin RozgaarSetu | Moderation queue, user suspension/reactivation, safety reports, system audit logs |
 
 ---
 
@@ -214,7 +189,7 @@ Run unit, integration, and RBAC tests:
 cd backend
 python -m pytest tests
 ```
-*Current status: 10/10 tests passing.*
+*Status: 10/10 tests passing.*
 
 ### 2. End-to-End User Journeys
 Execute the automated end-to-end journey script against the live server:
@@ -234,7 +209,7 @@ This executes the 8 complete platform journeys:
 ```bash
 cd frontend
 # Unit & component tests
-npm test -- --run
+npm test
 
 # TypeScript validation & production bundle
 npm run build
@@ -251,7 +226,7 @@ npm run build
    - Build Command: `npm run build`
    - Output Directory: `dist`
 4. Set Environment Variables:
-   - `VITE_API_BASE_URL`: Production backend URL (e.g., `https://api.kaamconnect.in`)
+   - `VITE_API_BASE_URL`: Production backend URL (e.g., `https://api.rozgaarsetu.in`)
 
 ### Backend (Render or Railway)
 1. Select `backend/` as Root Directory.
@@ -260,7 +235,7 @@ npm run build
    - Build Command: `pip install -r requirements.txt`
    - Start Command: `gunicorn -w 4 -b 0.0.0.0:$PORT run:app`
 3. Set Environment Variables:
-   - `MONGO_URI`: Production MongoDB Atlas connection URI (`mongodb+srv://<user>:<password>@cluster0.mongodb.net/kaamconnect?retryWrites=true&w=majority`)
+   - `MONGODB_URI`: Production MongoDB Atlas connection URI (`mongodb+srv://<user>:<password>@cluster0.mongodb.net/rozgaarsetu?retryWrites=true&w=majority`)
    - `JWT_SECRET_KEY`: High-entropy 256-bit secret string
    - `FLASK_ENV`: `production`
 

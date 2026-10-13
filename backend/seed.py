@@ -65,7 +65,7 @@ def seed():
         users_data = [
             {
                 "name": "Ramesh Shinde",
-                "email": "worker@demo.kaamconnect.in",
+                "email": "worker@demo.rozgaarsetu.in",
                 "phone": "+919820011111",
                 "roles": ["worker"],
                 "headline": "Licensed Electrician & Certified Wiring Specialist",
@@ -77,7 +77,7 @@ def seed():
             },
             {
                 "name": "Sunita Kamble",
-                "email": "worker2@demo.kaamconnect.in",
+                "email": "worker2@demo.rozgaarsetu.in",
                 "phone": "+919820022222",
                 "roles": ["worker"],
                 "headline": "Expert Deep Cleaning & Home Sanitization Professional",
@@ -89,7 +89,7 @@ def seed():
             },
             {
                 "name": "Pooja Sharma",
-                "email": "customer@demo.kaamconnect.in",
+                "email": "customer@demo.rozgaarsetu.in",
                 "phone": "+919820033333",
                 "roles": ["customer"],
                 "headline": None,
@@ -101,7 +101,7 @@ def seed():
             },
             {
                 "name": "Vikram Sethi",
-                "email": "employer@demo.kaamconnect.in",
+                "email": "employer@demo.rozgaarsetu.in",
                 "phone": "+919820044444",
                 "roles": ["employer"],
                 "headline": "Operations Director at Apex Facility & Logistics Services",
@@ -112,12 +112,12 @@ def seed():
                 "photo": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80"
             },
             {
-                "name": "Admin KaamConnect",
-                "email": "admin@demo.kaamconnect.in",
+                "name": "Admin RozgaarSetu",
+                "email": "admin@demo.rozgaarsetu.in",
                 "phone": "+919820099999",
                 "roles": ["admin"],
                 "headline": "System Administrator",
-                "bio": "KaamConnect platform administrator and trust & safety officer.",
+                "bio": "RozgaarSetu platform administrator and trust & safety officer.",
                 "skills": [],
                 "experience_years": 0.0,
                 "localities": [],
@@ -195,8 +195,8 @@ def seed():
         print("Seeded demo users & profiles.")
 
         # 4. Seed Service Listings
-        ramesh_id = user_map["worker@demo.kaamconnect.in"]
-        sunita_id = user_map["worker2@demo.kaamconnect.in"]
+        ramesh_id = user_map["worker@demo.rozgaarsetu.in"]
+        sunita_id = user_map["worker2@demo.rozgaarsetu.in"]
 
         service_listings = [
             {
@@ -246,7 +246,7 @@ def seed():
         print(f"Seeded {len(service_ids)} service listings.")
 
         # 5. Seed Gigs
-        employer_id = user_map["employer@demo.kaamconnect.in"]
+        employer_id = user_map["employer@demo.rozgaarsetu.in"]
         gigs_data = [
             {
                 "employer_id": employer_id,
@@ -379,11 +379,11 @@ def seed():
         print(f"Seeded {len(job_ids)} jobs.")
 
         # 7. Seed Sample Booking
-        pooja_id = user_map["customer@demo.kaamconnect.in"]
+        pooja_id = user_map["customer@demo.rozgaarsetu.in"]
         bkg_existing = db.bookings.find_one({"customer_id": pooja_id})
         if not bkg_existing and service_ids:
             bkg_doc = {
-                "booking_reference": "KC-BKG-20261011-DEMO1",
+                "booking_reference": "RS-BKG-20261011-DEMO1",
                 "customer_id": pooja_id,
                 "worker_id": ramesh_id,
                 "service_listing_id": service_ids[0],

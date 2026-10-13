@@ -172,7 +172,7 @@ export const WorkerOnboardingPage: React.FC = () => {
               What type of work are you looking for?
             </h2>
             <p style={{ color: 'var(--color-secondary-text)', fontSize: '0.9rem', marginBottom: '24px' }}>
-              You can select multiple options. KaamConnect will customize your dashboard accordingly.
+              You can select multiple options. RozgaarSetu will customize your dashboard accordingly.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>

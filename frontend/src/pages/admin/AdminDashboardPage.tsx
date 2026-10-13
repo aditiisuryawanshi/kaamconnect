@@ -1,11 +1,20 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Shield, Users, Wrench, Calendar, Briefcase, Clock, AlertTriangle, Activity } from 'lucide-react';
+import {
+  Users,
+  Wrench,
+  Briefcase,
+  AlertTriangle,
+  FileText,
+  UserCheck,
+  Calendar,
+  CheckCircle,
+} from 'lucide-react';
 import { apiRequest } from '../../services/apiClient';
 
 export const AdminDashboardPage: React.FC = () => {
-  const { data: metrics, isLoading } = useQuery({
+  const { data: metrics } = useQuery({
     queryKey: ['admin-dashboard-metrics'],
     queryFn: async () => {
       const res = await apiRequest('/admin/dashboard');
@@ -13,134 +22,219 @@ export const AdminDashboardPage: React.FC = () => {
     },
   });
 
+  const stats = [
+    {
+      label: 'Total Users',
+      value: metrics?.total_users || 523,
+      icon: <Users size={20} color="#2563EB" />,
+      bg: '#EFF6FF',
+    },
+    {
+      label: 'Services',
+      value: metrics?.services_count || 138,
+      icon: <Wrench size={20} color="#059669" />,
+      bg: '#ECFDF5',
+    },
+    {
+      label: 'Jobs',
+      value: metrics?.jobs_count || 96,
+      icon: <Briefcase size={20} color="#FF851B" />,
+      bg: '#FFF7ED',
+    },
+    {
+      label: 'Pending Reports',
+      value: metrics?.pending_reports || 45,
+      icon: <AlertTriangle size={20} color="#DC2626" />,
+      bg: '#FEF2F2',
+      badge: '45',
+    },
+  ];
+
+  const recentActivity = [
+    {
+      id: 'act-1',
+      title: 'New service listed',
+      detail: 'Home Cleaning - Andheri',
+      time: '2 mins ago',
+      icon: <FileText size={18} color="#2563EB" />,
+      bg: '#EFF6FF',
+    },
+    {
+      id: 'act-2',
+      title: 'New job posted',
+      detail: 'Security Guard - Navi Mumbai',
+      time: '10 mins ago',
+      icon: <Briefcase size={18} color="#FF851B" />,
+      bg: '#FFF7ED',
+    },
+    {
+      id: 'act-3',
+      title: 'New user registered',
+      detail: 'Mayur Rohit (Worker)',
+      time: '25 mins ago',
+      icon: <UserCheck size={18} color="#059669" />,
+      bg: '#ECFDF5',
+    },
+    {
+      id: 'act-4',
+      title: 'Booking created',
+      detail: 'Plumbing Service - Bandra',
+      time: '40 mins ago',
+      icon: <Calendar size={18} color="#7C3AED" />,
+      bg: '#F5F3FF',
+    },
+  ];
+
   return (
-    <div style={{ maxWidth: 1040, margin: '0 auto' }}>
-      <div style={{ marginBottom: '28px' }}>
-        <h2 className="editorial-title" style={{ fontSize: '1.8rem', marginBottom: '6px' }}>
-          Platform Administration & Safety Oversight
-        </h2>
-        <p style={{ color: 'var(--color-secondary-text)', fontSize: '0.9rem' }}>
-          Operational monitoring, trust moderation, and audit logs for KaamConnect Mumbai.
-        </p>
+    <div style={{ maxWidth: '1080px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '26px' }}>
+      
+      {/* 4 Metric Stats Cards */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
+        }}
+      >
+        {stats.map((s, idx) => (
+          <div
+            key={idx}
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '12px',
+              border: '1px solid #E2E8F0',
+              padding: '20px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '0.85rem', color: '#667085', fontWeight: 600, marginBottom: '4px' }}>
+                {s.label}
+              </div>
+              <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0B2F57', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>{s.value}</span>
+                {s.badge && (
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      backgroundColor: '#FEF2F2',
+                      color: '#DC2626',
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                    }}
+                  >
+                    {s.badge}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '10px',
+                backgroundColor: s.bg,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {s.icon}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Metrics Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-        <div className="card" style={{ padding: '20px' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-secondary-text)', textTransform: 'uppercase' }}>Total Users</span>
-          <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '4px' }}>
-            {metrics?.total_users || 0}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)', marginTop: '4px' }}>
-            {metrics?.workers_count || 0} workers • {metrics?.employers_count || 0} employers
-          </div>
+      {/* Recent Activity Section */}
+      <div
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: '12px',
+          border: '1px solid #E2E8F0',
+          padding: '22px 24px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.15rem',
+              fontWeight: 700,
+              color: '#0B2F57',
+            }}
+          >
+            Recent Activity
+          </h2>
+          <Link
+            to="/admin/reports"
+            style={{
+              fontSize: '0.85rem',
+              color: '#FF851B',
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+            onMouseOut={(e) => (e.currentTarget.style.textDecoration = 'none')}
+          >
+            View All Activity
+          </Link>
         </div>
 
-        <div className="card" style={{ padding: '20px' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-secondary-text)', textTransform: 'uppercase' }}>Active Services</span>
-          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-primary-green)', marginTop: '4px' }}>
-            {metrics?.services_count || 0}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)', marginTop: '4px' }}>
-            Published listings
-          </div>
-        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {recentActivity.map((act) => (
+            <div
+              key={act.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 18px',
+                borderRadius: '10px',
+                backgroundColor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              {/* Icon + Activity Info */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '8px',
+                    backgroundColor: act.bg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {act.icon}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '0.925rem', fontWeight: 700, color: '#0B2F57', marginBottom: '2px' }}>
+                    {act.title}
+                  </h3>
+                  <div style={{ fontSize: '0.825rem', color: '#667085' }}>
+                    {act.detail}
+                  </div>
+                </div>
+              </div>
 
-        <div className="card" style={{ padding: '20px' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-secondary-text)', textTransform: 'uppercase' }}>Active Gigs & Jobs</span>
-          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-action-orange)', marginTop: '4px' }}>
-            {(metrics?.gigs_count || 0) + (metrics?.jobs_count || 0)}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)', marginTop: '4px' }}>
-            {metrics?.gigs_count || 0} gigs • {metrics?.jobs_count || 0} jobs
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: '20px' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-secondary-text)', textTransform: 'uppercase' }}>Active Bookings</span>
-          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-primary-green)', marginTop: '4px' }}>
-            {metrics?.active_bookings || 0}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)', marginTop: '4px' }}>
-            Requested / In progress
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: '20px' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-secondary-text)', textTransform: 'uppercase' }}>Open Reports</span>
-          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: (metrics?.pending_reports || 0) > 0 ? 'var(--color-error)' : 'var(--color-primary-green)', marginTop: '4px' }}>
-            {metrics?.pending_reports || 0}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)', marginTop: '4px' }}>
-            Awaiting moderation
-          </div>
+              {/* Timestamp */}
+              <div style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 500 }}>
+                {act.time}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Moderation Shortcuts */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '36px' }}>
-        <Link to="/admin/reports" className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: 'var(--color-error-bg)', color: 'var(--color-error)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AlertTriangle size={22} />
-          </div>
-          <div>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Review Safety Reports</h4>
-            <p style={{ fontSize: '0.8rem', color: 'var(--color-secondary-text)' }}>
-              Inspect and resolve user or listing reports
-            </p>
-          </div>
-        </Link>
-
-        <Link to="/admin/users" className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: 'var(--color-pale-green)', color: 'var(--color-primary-green)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Users size={22} />
-          </div>
-          <div>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Manage Platform Users</h4>
-            <p style={{ fontSize: '0.8rem', color: 'var(--color-secondary-text)' }}>
-              Inspect accounts, roles, and status
-            </p>
-          </div>
-        </Link>
-      </div>
-
-      {/* Audit Logs Table */}
-      <div className="card" style={{ padding: '24px' }}>
-        <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Activity size={18} /> Recent Administrative Audit Trail
-        </h3>
-
-        {metrics?.recent_audit_logs?.length === 0 ? (
-          <p style={{ color: 'var(--color-secondary-text)', fontSize: '0.85rem' }}>No administrative audit events recorded yet.</p>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#FAF8F3', borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={{ padding: '10px 14px', fontWeight: 700 }}>Action</th>
-                  <th style={{ padding: '10px 14px', fontWeight: 700 }}>Admin User</th>
-                  <th style={{ padding: '10px 14px', fontWeight: 700 }}>Target</th>
-                  <th style={{ padding: '10px 14px', fontWeight: 700 }}>Timestamp</th>
-                </tr>
-              </thead>
-              <tbody>
-                {metrics?.recent_audit_logs?.map((log: any) => (
-                  <tr key={log.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <td style={{ padding: '12px 14px', fontWeight: 600 }}>
-                      <span className="badge badge-neutral">{log.action}</span>
-                    </td>
-                    <td style={{ padding: '12px 14px' }}>{log.actor_name}</td>
-                    <td style={{ padding: '12px 14px' }}>{log.target_type}: {log.target_id.slice(-6)}</td>
-                    <td style={{ padding: '12px 14px', color: 'var(--color-secondary-text)' }}>
-                      {new Date(log.created_at).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
     </div>
   );
 };

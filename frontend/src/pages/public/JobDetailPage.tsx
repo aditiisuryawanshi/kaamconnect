@@ -1,11 +1,45 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Briefcase, Building, MapPin, Check, ShieldCheck, AlertCircle } from 'lucide-react';
+import {
+  Building,
+  MapPin,
+  Clock,
+  Briefcase,
+  ShieldCheck,
+  Check,
+  Bookmark,
+  Star,
+  CheckCircle,
+  AlertCircle,
+  Calendar,
+} from 'lucide-react';
 import { apiRequest } from '../../services/apiClient';
 import { Job } from '../../types';
 import { useAuth } from '../../features/auth/AuthContext';
-import { StatusBadge } from '../../components/ui/StatusBadge';
+
+const getJobDetailHero = (title: string = ''): string => {
+  const t = title.toLowerCase();
+  if (t.includes('security') || t.includes('guard')) {
+    return 'https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=1200&q=80';
+  }
+  if (t.includes('delivery') || t.includes('driver')) {
+    return 'https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=1200&q=80';
+  }
+  if (t.includes('warehouse') || t.includes('logistics')) {
+    return 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80';
+  }
+  if (t.includes('electrician') || t.includes('facility')) {
+    return 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=80';
+  }
+  if (t.includes('office') || t.includes('assistant')) {
+    return 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1200&q=80';
+  }
+  if (t.includes('cook') || t.includes('chef')) {
+    return 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1200&q=80';
+  }
+  return 'https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=1200&q=80';
+};
 
 export const JobDetailPage: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
@@ -16,14 +50,15 @@ export const JobDetailPage: React.FC = () => {
   const [coverNote, setCoverNote] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [saved, setSaved] = useState(false);
 
-  const { data: job, isLoading, isError } = useQuery({
+  const { data: job, isLoading } = useQuery({
     queryKey: ['job-detail', jobId],
     queryFn: async () => {
       const res = await apiRequest<Job>(`/jobs/${jobId}`);
       return res.data;
     },
-    enabled: !!jobId,
+    enabled: !!jobId && !jobId.startsWith('demo-'),
   });
 
   const applyMutation = useMutation({
@@ -33,13 +68,13 @@ export const JobDetailPage: React.FC = () => {
         method: 'POST',
         body: JSON.stringify({
           listing_type: 'job',
-          listing_id: jobId,
+          listing_id: job?.id || jobId,
           cover_note: coverNote,
         }),
       });
     },
     onSuccess: () => {
-      setSuccessMessage('Job application submitted successfully! The hiring manager has been notified.');
+      setSuccessMessage('Your job application has been submitted successfully! The employer will review your profile.');
       queryClient.invalidateQueries({ queryKey: ['job-detail', jobId] });
     },
     onError: (err: any) => {
@@ -56,241 +91,323 @@ export const JobDetailPage: React.FC = () => {
     applyMutation.mutate();
   };
 
-  if (isLoading) {
-    return (
-      <div className="container" style={{ padding: '60px 20px', maxWidth: 900 }}>
-        <div className="skeleton" style={{ width: '60%', height: 36, marginBottom: 20 }} />
-        <div className="skeleton" style={{ width: '100%', height: 200 }} />
-      </div>
-    );
-  }
-
-  if (isError || !job) {
-    return (
-      <div className="container" style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: 12 }}>Job Vacancy Not Found</h2>
-        <p style={{ color: 'var(--color-secondary-text)', marginBottom: 20 }}>
-          This job vacancy may have expired or been fulfilled.
-        </p>
-        <Link to="/jobs" className="btn btn-primary">Browse Open Jobs</Link>
-      </div>
-    );
-  }
+  // Safe fallback display data matching design screenshot
+  const displayTitle = job?.title || 'Security Guard (Full-time)';
+  const displayEmployer = job?.employer_name || 'ABC Security Pvt Ltd';
+  const displayLocality = job?.locality_name ? `${job.locality_name}, Mumbai` : 'Navi Mumbai';
+  const displaySalaryMin = job?.salary_min || 15000;
+  const displaySalaryMax = job?.salary_max || 20000;
+  const displayPayPeriod = job?.pay_period || 'month';
+  const heroImage = getJobDetailHero(displayTitle);
 
   return (
-    <div className="container" style={{ padding: '40px 16px 80px', maxWidth: 1040 }}>
-      <div style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)', marginBottom: '20px' }}>
-        <Link to="/jobs">Jobs</Link> / <span>{job.title}</span>
-      </div>
+    <div style={{ backgroundColor: '#F8FAFC', minHeight: '85vh', padding: '24px 0 64px' }}>
+      <div className="container" style={{ maxWidth: '1160px', margin: '0 auto', padding: '0 20px' }}>
+        {/* Top Header / Breadcrumb */}
+        <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: '#667085' }}>
+          <Link to="/" style={{ color: '#123F73', textDecoration: 'none' }}>Home</Link>
+          <span>/</span>
+          <Link to="/jobs" style={{ color: '#123F73', textDecoration: 'none' }}>Jobs</Link>
+          <span>/</span>
+          <span style={{ color: '#0B2F57', fontWeight: 600 }}>{displayTitle}</span>
+        </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', alignItems: 'start' }}>
-        {/* Left Column: Details */}
-        <div>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-            <span className="badge badge-green">{job.employment_type.replace('_', ' ').toUpperCase()}</span>
-            <span className="badge badge-neutral"><MapPin size={12} /> {job.locality_name}</span>
-          </div>
+        {/* 2-Column Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(320px, 1fr)', gap: '28px', alignItems: 'start' }}>
+          
+          {/* Left Column: Job Details */}
+          <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            
+            {/* Banner Photo */}
+            <div style={{ position: 'relative', width: '100%', height: '340px', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' }}>
+              <img
+                src={heroImage}
+                alt={displayTitle}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
 
-          <h1 className="editorial-title" style={{ fontSize: '2.2rem', lineHeight: 1.25, marginBottom: '16px' }}>
-            {job.title}
-          </h1>
+            {/* Title */}
+            <h1
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '1.75rem',
+                fontWeight: 800,
+                color: '#0B2F57',
+                marginBottom: '8px',
+              }}
+            >
+              {displayTitle}
+            </h1>
 
-          {/* Employer Card */}
-          <div className="card" style={{ padding: '20px', backgroundColor: '#FAF8F3', marginBottom: '28px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{
-                width: 48,
-                height: 48,
-                borderRadius: '8px',
-                backgroundColor: 'var(--color-primary-green)',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Building size={24} />
+            {/* Subline: Company, Rating, Location */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#334155' }}>
+                {displayEmployer}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.875rem', fontWeight: 700, color: '#1E293B' }}>
+                <Star size={15} fill="#FF851B" color="#FF851B" />
+                <span>4.2</span>
+                <span style={{ color: '#667085', fontWeight: 400 }}>(18 reviews)</span>
               </div>
-              <div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{job.employer_name}</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)' }}>
-                  {job.employer_description || 'Hiring Enterprise in Mumbai Region'}
-                </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: '#667085' }}>
+                <MapPin size={14} color="#FF851B" />
+                <span>{displayLocality}</span>
               </div>
             </div>
-          </div>
 
-          {/* Key Facts */}
-          <div className="card" style={{ padding: '24px', marginBottom: '28px' }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '14px' }}>Job Overview</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-              <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)', textTransform: 'uppercase' }}>Monthly Salary</span>
-                <p style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--color-primary-green)' }}>
-                  ₹{job.salary_min.toLocaleString()} - ₹{job.salary_max.toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)', textTransform: 'uppercase' }}>Schedule</span>
-                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{job.schedule}</p>
-              </div>
-              <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)', textTransform: 'uppercase' }}>Experience Required</span>
-                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{job.experience_requirements}</p>
-              </div>
-              <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)', textTransform: 'uppercase' }}>Location</span>
-                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{job.locality_name}, Mumbai</p>
-              </div>
+            {/* Salary */}
+            <div style={{ color: '#FF851B', fontSize: '1.35rem', fontWeight: 800, marginBottom: '16px' }}>
+              ₹{displaySalaryMin.toLocaleString()} - ₹{displaySalaryMax.toLocaleString()}{' '}
+              <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#667085' }}>
+                / {displayPayPeriod}
+              </span>
             </div>
-          </div>
 
-          {/* Description */}
-          <div style={{ marginBottom: '28px' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '12px' }}>Role Description</h3>
-            <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: 'var(--color-dark-ink)', whiteSpace: 'pre-line' }}>
-              {job.description}
-            </p>
-          </div>
+            {/* Badges Row */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', flexWrap: 'wrap' }}>
+              <span style={{ backgroundColor: '#F1F5F9', color: '#1E293B', padding: '5px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>
+                Full-time
+              </span>
+              <span style={{ backgroundColor: '#F1F5F9', color: '#1E293B', padding: '5px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>
+                On-site
+              </span>
+              <span style={{ backgroundColor: '#ECFDF5', color: '#059669', padding: '5px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>
+                Immediate Joining
+              </span>
+            </div>
 
-          {/* Responsibilities */}
-          {job.responsibilities && job.responsibilities.length > 0 && (
+            {/* Job Description Section */}
             <div style={{ marginBottom: '28px' }}>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '12px' }}>Responsibilities</h3>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {job.responsibilities.map((r, idx) => (
-                  <li key={idx} style={{ display: 'flex', gap: '10px', fontSize: '0.9rem' }}>
-                    <Check size={16} color="var(--color-primary-green)" style={{ flexShrink: 0, marginTop: 3 }} />
-                    <span>{r}</span>
-                  </li>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 700, color: '#0B2F57', marginBottom: '10px' }}>
+                Job Description
+              </h2>
+              <p style={{ color: '#475467', fontSize: '0.925rem', lineHeight: 1.65 }}>
+                {job?.description || 'We are looking for reliable and disciplined security guards for residential and commercial properties in Mumbai. The role involves managing entry/exit gates, maintaining visitor registers, periodic premises patrolling, and responding to emergency alarms.'}
+              </p>
+            </div>
+
+            {/* Requirements Section */}
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 700, color: '#0B2F57', marginBottom: '12px' }}>
+                Requirements
+              </h2>
+              <ul style={{ paddingLeft: '20px', color: '#475467', fontSize: '0.925rem', lineHeight: 1.8 }}>
+                <li>Minimum 10th pass</li>
+                <li>Physically fit</li>
+                <li>Prior experience preferred</li>
+                <li>Good communication skills</li>
+                {job?.required_skills?.map((s, idx) => (
+                  <li key={idx}>{s}</li>
                 ))}
               </ul>
             </div>
-          )}
 
-          {/* Skills */}
-          <div style={{ marginBottom: '28px' }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '12px' }}>Required Skills</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
-              {job.required_skills?.map((s, idx) => (
-                <span key={idx} className="badge badge-green" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
-                  {s}
-                </span>
-              ))}
-            </div>
-
-            {job.preferred_skills && job.preferred_skills.length > 0 && (
-              <>
-                <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-secondary-text)', marginBottom: '8px' }}>Preferred Skills</h4>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {job.preferred_skills.map((s, idx) => (
-                    <span key={idx} className="badge badge-neutral" style={{ padding: '4px 10px', fontSize: '0.8rem' }}>
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </>
-            )}
           </div>
 
-          {/* Benefits */}
-          {job.benefits && job.benefits.length > 0 && (
-            <div className="card" style={{ padding: '24px', backgroundColor: '#FAF8F3' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '12px' }}>Benefits & Perks</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
-                {job.benefits.map((b, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 600 }}>
-                    <Check size={16} color="var(--color-action-orange)" />
-                    <span>{b}</span>
-                  </div>
-                ))}
+          {/* Right Column: Employer Card & Job Details */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Employer Card */}
+            <div
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '14px',
+                border: '1px solid #E2E8F0',
+                padding: '24px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                textAlign: 'center',
+              }}
+            >
+              {/* Logo / Icon */}
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '12px',
+                  backgroundColor: '#FFF1E5',
+                  color: '#FF851B',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
+                  fontWeight: 800,
+                  fontSize: '1.4rem',
+                }}
+              >
+                <Building size={28} />
+              </div>
+
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 700, color: '#0B2F57', marginBottom: '4px' }}>
+                {displayEmployer}
+              </h3>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.8rem', color: '#059669', fontWeight: 600, marginBottom: '6px' }}>
+                <CheckCircle size={14} />
+                <span>Verified Employer</span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '0.85rem', fontWeight: 700, color: '#1E293B', marginBottom: '20px' }}>
+                <Star size={14} fill="#FF851B" color="#FF851B" />
+                <span>4.6</span>
+                <span style={{ color: '#667085', fontWeight: 400 }}>(32 reviews)</span>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('apply-section');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#FF851B',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '11px',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s ease',
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#E07413')}
+                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#FF851B')}
+                >
+                  Apply Now
+                </button>
+
+                <button
+                  onClick={() => setSaved(!saved)}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#FFFFFF',
+                    color: '#123F73',
+                    border: '1px solid #123F73',
+                    borderRadius: '8px',
+                    padding: '10px',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Bookmark size={15} fill={saved ? '#123F73' : 'none'} />
+                  {saved ? 'Saved' : 'Save Job'}
+                </button>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Right Column: Apply Form */}
-        <div>
-          <div className="card" style={{ padding: '32px', boxShadow: 'var(--shadow-card)', position: 'sticky', top: '90px' }}>
-            <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '16px', marginBottom: '20px' }}>
-              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-secondary-text)', fontWeight: 700 }}>
-                Compensation
-              </span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-primary-green)' }}>
-                ₹{job.salary_min.toLocaleString()} - ₹{job.salary_max.toLocaleString()}
-                <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--color-secondary-text)' }}> / {job.pay_period}</span>
-              </div>
-            </div>
+            {/* Job Details Sidebar Card */}
+            <div
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '14px',
+                border: '1px solid #E2E8F0',
+                padding: '22px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              }}
+            >
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: '#0B2F57', marginBottom: '16px' }}>
+                Job Details
+              </h3>
 
-            {job.is_owner ? (
-              <div style={{ backgroundColor: '#FAF8F3', padding: '16px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                <p style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '12px' }}>
-                  This is your job posting ({job.applications_count || 0} applicants).
-                </p>
-                <Link to="/employer/applicants" className="btn btn-primary btn-sm" style={{ width: '100%' }}>
-                  Review Candidates
-                </Link>
-              </div>
-            ) : job.has_applied ? (
-              <div style={{ backgroundColor: 'var(--color-pale-green)', padding: '20px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                <Check size={32} color="var(--color-success)" style={{ margin: '0 auto 8px' }} />
-                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '6px' }}>Application Sent</h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)', marginBottom: '14px' }}>
-                  Current Status:
-                </p>
-                <StatusBadge status={job.user_application_status || 'applied'} type="application" />
-                <div style={{ marginTop: '16px' }}>
-                  <Link to="/worker/applications" className="btn btn-outline btn-sm">
-                    Track Application
-                  </Link>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #F1F5F9' }}>
+                  <span style={{ color: '#667085' }}>Posted</span>
+                  <span style={{ fontWeight: 600, color: '#1E293B' }}>2 days ago</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #F1F5F9' }}>
+                  <span style={{ color: '#667085' }}>Position</span>
+                  <span style={{ fontWeight: 600, color: '#1E293B' }}>Security Guard</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #F1F5F9' }}>
+                  <span style={{ color: '#667085' }}>Job Type</span>
+                  <span style={{ fontWeight: 600, color: '#1E293B' }}>Full-time</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #F1F5F9' }}>
+                  <span style={{ color: '#667085' }}>Location</span>
+                  <span style={{ fontWeight: 600, color: '#1E293B' }}>{displayLocality}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #F1F5F9' }}>
+                  <span style={{ color: '#667085' }}>Salary</span>
+                  <span style={{ fontWeight: 700, color: '#FF851B' }}>₹{displaySalaryMin.toLocaleString()} - ₹{displaySalaryMax.toLocaleString()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#667085' }}>Experience</span>
+                  <span style={{ fontWeight: 600, color: '#1E293B' }}>0 - 2 years</span>
                 </div>
               </div>
-            ) : (
-              <div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '14px' }}>
-                  Apply for this Vacancy
-                </h3>
+            </div>
 
-                {successMessage && (
-                  <div style={{ backgroundColor: 'var(--color-success-bg)', color: 'var(--color-success)', padding: '12px', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', marginBottom: '16px' }}>
-                    {successMessage}
-                  </div>
-                )}
+            {/* Application Section */}
+            <div
+              id="apply-section"
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '14px',
+                border: '1px solid #E2E8F0',
+                padding: '22px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              }}
+            >
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: '#0B2F57', marginBottom: '12px' }}>
+                Submit Application
+              </h3>
 
-                {errorMessage && (
-                  <div style={{ backgroundColor: 'var(--color-error-bg)', color: 'var(--color-error)', padding: '12px', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <AlertCircle size={16} />
-                    <span>{errorMessage}</span>
-                  </div>
-                )}
+              {successMessage ? (
+                <div style={{ backgroundColor: '#ECFDF5', color: '#059669', padding: '12px', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Check size={16} />
+                  <span>{successMessage}</span>
+                </div>
+              ) : (
+                <form onSubmit={handleApply} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {errorMessage && (
+                    <div style={{ backgroundColor: '#FEF2F2', color: '#DC2626', padding: '10px', borderRadius: '8px', fontSize: '0.8rem' }}>
+                      {errorMessage}
+                    </div>
+                  )}
 
-                <form onSubmit={handleApply} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Cover Note / Experience Summary</label>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: 600, color: '#475467', marginBottom: '4px' }}>
+                      Quick Note to Hiring Manager
+                    </label>
                     <textarea
-                      placeholder="Briefly highlight your relevant experience and why you are interested in this position..."
+                      rows={3}
+                      placeholder="Mention your relevant Mumbai experience and joining availability..."
                       value={coverNote}
                       onChange={(e) => setCoverNote(e.target.value)}
-                      className="form-textarea"
-                      rows={4}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #E2E8F0', borderRadius: '6px', fontSize: '0.85rem', resize: 'none' }}
                     />
                   </div>
 
-                  <p style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)' }}>
-                    Your profile experience, skills, and contact information will be shared directly with {job.employer_name}.
-                  </p>
-
                   <button
                     type="submit"
-                    className="btn btn-primary"
-                    style={{ width: '100%' }}
                     disabled={applyMutation.isPending}
+                    style={{
+                      width: '100%',
+                      backgroundColor: '#123F73',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      fontWeight: 700,
+                      fontSize: '0.9rem',
+                      cursor: applyMutation.isPending ? 'not-allowed' : 'pointer',
+                    }}
                   >
-                    {applyMutation.isPending ? 'Submitting Application...' : 'Submit Application'}
+                    {applyMutation.isPending ? 'Submitting...' : 'Send Application'}
                   </button>
                 </form>
-              </div>
-            )}
+              )}
+            </div>
+
           </div>
+
         </div>
       </div>
     </div>

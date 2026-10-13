@@ -2,30 +2,88 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Wrench,
-  Calendar,
-  Briefcase,
   Search,
   MapPin,
-  CheckCircle,
   ArrowRight,
-  Shield,
+  ShieldCheck,
   Star,
   Users,
-  Clock
+  Clock,
+  Briefcase,
+  ChevronRight,
 } from 'lucide-react';
 import { apiRequest } from '../../services/apiClient';
-import { Locality, ServiceCategory, ServiceListing, Gig, Job } from '../../types';
+import { useLanguage } from '../../features/i18n/LanguageContext';
+import { Locality, ServiceListing, Job } from '../../types';
+
+// The 9 exact photographic categories from the uploaded reference image
+const POPULAR_CATEGORIES = [
+  {
+    id: 'home-cleaning',
+    title: 'Home Cleaning',
+    slug: 'cleaning',
+    img: '/assets/categories/home_cleaning.jpg',
+  },
+  {
+    id: 'plumbing',
+    title: 'Plumbing',
+    slug: 'plumbing',
+    img: '/assets/categories/plumbing.jpg',
+  },
+  {
+    id: 'electrical',
+    title: 'Electrical',
+    slug: 'electrical',
+    img: '/assets/categories/electrical.jpg',
+  },
+  {
+    id: 'appliance-repair',
+    title: 'Appliance Repair',
+    slug: 'appliance-repair',
+    img: '/assets/categories/appliance_repair.jpg',
+  },
+  {
+    id: 'cooking-home-help',
+    title: 'Cooking & Home Help',
+    slug: 'cooking',
+    img: '/assets/categories/cooking_home_help.jpg',
+  },
+  {
+    id: 'beauty-wellness',
+    title: 'Beauty & Wellness',
+    slug: 'beauty',
+    img: '/assets/categories/beauty_wellness.jpg',
+  },
+  {
+    id: 'carpentry',
+    title: 'Carpentry',
+    slug: 'carpentry',
+    img: '/assets/categories/carpentry.jpg',
+  },
+  {
+    id: 'painting',
+    title: 'Painting',
+    slug: 'painting',
+    img: '/assets/categories/painting.jpg',
+  },
+  {
+    id: 'moving-loading',
+    title: 'Moving & Loading',
+    slug: 'moving',
+    img: '/assets/categories/moving_loading.jpg',
+  },
+];
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   // Search state
-  const [searchType, setSearchType] = useState<'services' | 'gigs' | 'jobs'>('services');
+  const [searchTab, setSearchTab] = useState<'service' | 'job'>('service');
   const [keyword, setKeyword] = useState('');
   const [localityId, setLocalityId] = useState('');
 
-  // Fetch localities
+  // Fetch localities for dropdown
   const { data: localities = [] } = useQuery({
     queryKey: ['localities'],
     queryFn: async () => {
@@ -34,34 +92,16 @@ export const HomePage: React.FC = () => {
     },
   });
 
-  // Fetch categories
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const res = await apiRequest<ServiceCategory[]>('/meta/categories');
-      return res.data;
-    },
-  });
-
-  // Fetch featured services
+  // Fetch featured services for lower section
   const { data: services = [] } = useQuery({
     queryKey: ['featured-services'],
     queryFn: async () => {
-      const res = await apiRequest<ServiceListing[]>('/services?limit=3');
+      const res = await apiRequest<ServiceListing[]>('/services?limit=4');
       return res.data;
     },
   });
 
-  // Fetch featured gigs
-  const { data: gigs = [] } = useQuery({
-    queryKey: ['featured-gigs'],
-    queryFn: async () => {
-      const res = await apiRequest<Gig[]>('/gigs?limit=3');
-      return res.data;
-    },
-  });
-
-  // Fetch featured jobs
+  // Fetch featured jobs for lower section
   const { data: jobs = [] } = useQuery({
     queryKey: ['featured-jobs'],
     queryFn: async () => {
@@ -76,272 +116,352 @@ export const HomePage: React.FC = () => {
     if (keyword) params.set('keyword', keyword);
     if (localityId) params.set('locality', localityId);
 
-    navigate(`/${searchType}?${params.toString()}`);
+    const targetRoute = searchTab === 'service' ? '/services' : '/jobs';
+    navigate(`${targetRoute}?${params.toString()}`);
   };
 
   return (
-    <div>
-      {/* 1. HERO SECTION */}
-      <section style={{
-        backgroundColor: 'var(--color-warm-cream)',
-        padding: '60px 0 80px',
-        borderBottom: '1px solid var(--color-border)'
-      }}>
-        <div className="container">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '40px',
-            alignItems: 'center'
-          }}>
-            {/* Left Hero Copy */}
-            <div>
-              <div style={{
-                display: 'inline-flex',
+    <div style={{ backgroundColor: '#FFFFFF', minHeight: '100vh' }}>
+      
+      {/* 1. EXACT HERO BANNER MATCHING UPLOADED REFERENCE IMAGE */}
+      <section
+        style={{
+          position: 'relative',
+          width: '100%',
+          backgroundColor: '#0B2F57',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Full-width composite hero backdrop */}
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: '1440px',
+            margin: '0 auto',
+            minHeight: '440px',
+            aspectRatio: '1024 / 384',
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'flex-end',
+            backgroundImage: "url('/assets/landing_hero.png')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+            padding: '40px 36px 32px',
+          }}
+          className="landing-hero-container"
+        >
+          {/* Interactive Floating Search Card Overlaid Exactly on the Mockup's Search Position */}
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '560px',
+              position: 'relative',
+              zIndex: 10,
+            }}
+            className="landing-search-card"
+          >
+            {/* Search Tabs */}
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '-1px' }}>
+              <button
+                type="button"
+                onClick={() => setSearchTab('service')}
+                style={{
+                  backgroundColor: searchTab === 'service' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.85)',
+                  color: searchTab === 'service' ? '#0B2F57' : '#64748B',
+                  fontWeight: searchTab === 'service' ? 700 : 600,
+                  fontSize: '0.875rem',
+                  padding: '9px 22px',
+                  borderRadius: '10px 10px 0 0',
+                  border: 'none',
+                  borderBottom: searchTab === 'service' ? '3px solid #FF851B' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  boxShadow: searchTab === 'service' ? '0 -2px 6px rgba(0,0,0,0.06)' : 'none',
+                }}
+              >
+                Find a Service
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchTab('job')}
+                style={{
+                  backgroundColor: searchTab === 'job' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.85)',
+                  color: searchTab === 'job' ? '#0B2F57' : '#64748B',
+                  fontWeight: searchTab === 'job' ? 700 : 600,
+                  fontSize: '0.875rem',
+                  padding: '9px 22px',
+                  borderRadius: '10px 10px 0 0',
+                  border: 'none',
+                  borderBottom: searchTab === 'job' ? '3px solid #FF851B' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  boxShadow: searchTab === 'job' ? '0 -2px 6px rgba(0,0,0,0.06)' : 'none',
+                }}
+              >
+                Find a Job
+              </button>
+            </div>
+
+            {/* Input Bar */}
+            <form
+              onSubmit={handleSearch}
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: searchTab === 'service' ? '0 12px 12px 12px' : '12px',
+                padding: '8px 10px',
+                boxShadow: '0 12px 32px rgba(0, 0, 0, 0.18)',
+                display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                backgroundColor: 'var(--color-pale-green)',
-                color: 'var(--color-deep-green)',
-                padding: '6px 14px',
-                borderRadius: 'var(--radius-full)',
-                fontSize: '0.825rem',
-                fontWeight: 600,
-                marginBottom: '20px',
-                border: '1px solid #C4DEC9'
-              }}>
-                <MapPin size={14} color="var(--color-action-orange)" />
-                Dedicated Workforce Platform for Mumbai Region
-              </div>
-
-              <h1 className="editorial-title" style={{
-                fontSize: 'clamp(2.2rem, 5vw, 3.4rem)',
-                lineHeight: 1.15,
-                marginBottom: '20px'
-              }}>
-                Real People. Real Work. A Stronger Mumbai.
-              </h1>
-
-              <p style={{
-                fontSize: '1.125rem',
-                color: 'var(--color-secondary-text)',
-                lineHeight: 1.6,
-                marginBottom: '36px',
-                maxWidth: '540px'
-              }}>
-                Find trusted household services, flexible short-term shift gigs, and long-term career opportunities — all in one unified Mumbai marketplace.
-              </p>
-
-              {/* 3 DISTINCT MARKETPLACE ENTRY PILLS */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px', marginBottom: '32px' }}>
-                <Link
-                  to="/services"
-                  className="card"
-                  style={{
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    gap: '8px',
-                    borderLeft: '4px solid var(--color-primary-green)'
-                  }}
-                >
-                  <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: 'var(--color-pale-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary-green)' }}>
-                    <Wrench size={18} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-dark-ink)' }}>Book a Service</h3>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)' }}>Electricians, cleaners, cooks</p>
-                  </div>
-                </Link>
-
-                <Link
-                  to="/gigs"
-                  className="card"
-                  style={{
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    gap: '8px',
-                    borderLeft: '4px solid var(--color-action-orange)'
-                  }}
-                >
-                  <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#FEF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-action-orange)' }}>
-                    <Calendar size={18} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-dark-ink)' }}>Find Shift Gigs</h3>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)' }}>Events, warehouse, daily pay</p>
-                  </div>
-                </Link>
-
-                <Link
-                  to="/jobs"
-                  className="card"
-                  style={{
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    gap: '8px',
-                    borderLeft: '4px solid var(--color-saffron-orange)'
-                  }}
-                >
-                  <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: 'var(--color-warning-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-warning)' }}>
-                    <Briefcase size={18} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-dark-ink)' }}>Find Long-Term Jobs</h3>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)' }}>Full-time salary with benefits</p>
-                  </div>
-                </Link>
-              </div>
-            </div>
-
-            {/* Right Hero Image Card */}
-            <div style={{ position: 'relative' }}>
-              <div className="card" style={{ overflow: 'hidden', padding: '10px' }}>
-                <img
-                  src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80"
-                  alt="Indian electrician and technician at work"
-                  style={{ width: '100%', height: '380px', objectFit: 'cover', borderRadius: 'var(--radius-md)' }}
-                />
-                <div style={{
-                  padding: '16px 12px',
+                flexWrap: 'wrap',
+                border: '1px solid #E2E8F0',
+              }}
+            >
+              {/* Keyword Input */}
+              <div
+                style={{
+                  flex: '1.2 1 180px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  backgroundColor: '#FAF8F3',
-                  borderRadius: 'var(--radius-md)',
-                  marginTop: '10px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: 'var(--color-primary-green)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-                      R
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>Ramesh Shinde</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)' }}>Licensed Electrician • Andheri & Powai</div>
-                    </div>
-                  </div>
-                  <span className="badge badge-green">Available Today</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. FUNCTIONAL SEARCH SECTION */}
-      <section style={{ transform: 'translateY(-30px)', zIndex: 10, position: 'relative' }}>
-        <div className="container">
-          <div className="card" style={{ padding: '24px', boxShadow: 'var(--shadow-dropdown)' }}>
-            {/* Search Type Selector Tabs */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '18px', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
-              {[
-                { type: 'services', label: 'Services (Task / Hourly)', icon: <Wrench size={16} /> },
-                { type: 'gigs', label: 'Shift Gigs (Daily / Short-Term)', icon: <Calendar size={16} /> },
-                { type: 'jobs', label: 'Long-Term Jobs (Full-Time)', icon: <Briefcase size={16} /> },
-              ].map((tab) => (
-                <button
-                  key={tab.type}
-                  type="button"
-                  onClick={() => setSearchType(tab.type as any)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 16px',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    backgroundColor: searchType === tab.type ? 'var(--color-primary-green)' : 'transparent',
-                    color: searchType === tab.type ? 'var(--color-white)' : 'var(--color-secondary-text)',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  {tab.icon}
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Search Form Inputs */}
-            <form onSubmit={handleSearch} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr)) 140px', gap: '14px', alignItems: 'center' }}>
-              <div style={{ position: 'relative' }}>
+                  gap: '8px',
+                  padding: '6px 10px',
+                }}
+              >
+                <Search size={16} color="#0B2F57" />
                 <input
                   type="text"
-                  placeholder={
-                    searchType === 'services'
-                      ? 'Service name (e.g. Electrician, Cleaning)...'
-                      : searchType === 'gigs'
-                      ? 'Gig role (e.g. Event Helper, Warehouse)...'
-                      : 'Job title or skills (e.g. Technician, Retail)...'
-                  }
+                  placeholder={searchTab === 'service' ? 'What do you need?' : 'What job are you looking for?'}
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  className="form-input"
-                  style={{ paddingLeft: '38px' }}
+                  style={{
+                    width: '100%',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '0.875rem',
+                    color: '#1E293B',
+                    backgroundColor: 'transparent',
+                  }}
                 />
-                <Search size={16} color="var(--color-secondary-text)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               </div>
 
-              <div>
+              {/* Separator */}
+              <div
+                style={{
+                  width: '1px',
+                  height: '24px',
+                  backgroundColor: '#E2E8F0',
+                }}
+                className="search-divider"
+              />
+
+              {/* Locality Selector */}
+              <div
+                style={{
+                  flex: '1 1 170px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 10px',
+                }}
+              >
+                <MapPin size={16} color="#0B2F57" />
                 <select
                   value={localityId}
                   onChange={(e) => setLocalityId(e.target.value)}
-                  className="form-select"
+                  style={{
+                    width: '100%',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '0.875rem',
+                    color: localityId ? '#1E293B' : '#64748B',
+                    backgroundColor: 'transparent',
+                    cursor: 'pointer',
+                  }}
                 >
-                  <option value="">All Mumbai Localities</option>
+                  <option value="">Select locality in Mumbai</option>
+                  <option value="Andheri">Andheri</option>
+                  <option value="Bandra">Bandra</option>
+                  <option value="Borivali">Borivali</option>
+                  <option value="Dadar">Dadar</option>
+                  <option value="Powai">Powai</option>
+                  <option value="Thane">Thane</option>
+                  <option value="Navi Mumbai">Navi Mumbai</option>
                   {localities.map((loc) => (
-                    <option key={loc.id} value={loc.id}>{loc.name} ({loc.region})</option>
+                    <option key={loc.id} value={loc.name}>
+                      {loc.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
-              <button type="submit" className="btn btn-primary" style={{ height: '42px' }}>
-                <Search size={16} /> Search
+              {/* Solid Orange Search Button */}
+              <button
+                type="submit"
+                style={{
+                  backgroundColor: '#FF851B',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  padding: '10px 28px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s ease',
+                  flexShrink: 0,
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#E07413')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#FF851B')}
+              >
+                Search
               </button>
             </form>
           </div>
         </div>
       </section>
 
-      {/* 3. SERVICE CATEGORIES TILES */}
-      <section style={{ padding: '40px 0 60px' }}>
-        <div className="container">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+      {/* 2. POPULAR SERVICES IN MUMBAI SECTION - BIGGER & CRYSTAL CLEAR PICTURES */}
+      <section style={{ padding: '44px 0 56px', backgroundColor: '#FFFFFF' }}>
+        <div className="container" style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 20px' }}>
+          
+          {/* Header Row */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
+              marginBottom: '24px',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
             <div>
-              <h2 className="editorial-title" style={{ fontSize: '1.85rem' }}>Popular Service Categories</h2>
-              <p style={{ color: 'var(--color-secondary-text)', fontSize: '0.9rem' }}>Verified local professionals ready for home & commercial needs</p>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.5rem',
+                  fontWeight: 800,
+                  color: '#0B2F57',
+                  letterSpacing: '-0.01em',
+                  marginBottom: '4px',
+                }}
+              >
+                Popular Services in Mumbai
+              </h2>
+              <p style={{ color: '#667085', fontSize: '0.9rem' }}>
+                Book trusted, background-checked trade professionals across Mumbai with zero middleman fee
+              </p>
             </div>
-            <Link to="/services" style={{ color: 'var(--color-action-orange)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.9rem' }}>
-              Browse all <ArrowRight size={16} />
+
+            <Link
+              to="/services"
+              style={{
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                color: '#123F73',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CBD5E1',
+                backgroundColor: '#FFFFFF',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#123F73';
+                e.currentTarget.style.color = '#FFFFFF';
+                e.currentTarget.style.borderColor = '#123F73';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#FFFFFF';
+                e.currentTarget.style.color = '#123F73';
+                e.currentTarget.style.borderColor = '#CBD5E1';
+              }}
+            >
+              <span>View All</span>
+              <ArrowRight size={16} />
             </Link>
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '20px'
-          }}>
-            {categories.map((cat) => (
+          {/* 9 Category Tiles Grid - Bigger, Crisp, High-Definition */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(9, 1fr)',
+              gap: '14px',
+            }}
+            className="categories-grid"
+          >
+            {POPULAR_CATEGORIES.map((cat) => (
               <Link
                 key={cat.id}
                 to={`/services?category=${cat.slug}`}
-                className="card"
-                style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  borderRadius: '14px',
+                  border: '1px solid #E2E8F0',
+                  overflow: 'hidden',
+                  backgroundColor: '#FFFFFF',
+                  textDecoration: 'none',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                  transition: 'transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.borderColor = '#FF851B';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.1)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = '#E2E8F0';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.04)';
+                }}
               >
-                <div style={{ height: '140px', overflow: 'hidden' }}>
+                {/* Large Clear Picture (125px height, crystal clear) */}
+                <div style={{ width: '100%', height: '125px', overflow: 'hidden', backgroundColor: '#F1F5F9' }}>
                   <img
-                    src={cat.image_url || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80'}
-                    alt={cat.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
+                    src={cat.img}
+                    alt={cat.title}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                      transition: 'transform 0.25s ease',
+                    }}
+                    loading="lazy"
+                    onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+                    onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                   />
                 </div>
-                <div style={{ padding: '16px' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '6px' }}>{cat.name}</h3>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--color-secondary-text)', lineHeight: 1.4 }}>{cat.description}</p>
+
+                {/* Title */}
+                <div
+                  style={{
+                    padding: '10px 6px',
+                    textAlign: 'center',
+                    minHeight: '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#FFFFFF',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '0.825rem',
+                      fontWeight: 700,
+                      color: '#0B2F57',
+                      lineHeight: 1.25,
+                      fontFamily: 'var(--font-display)',
+                    }}
+                  >
+                    {cat.title}
+                  </span>
                 </div>
               </Link>
             ))}
@@ -349,145 +469,266 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. HOW KAAMCONNECT WORKS */}
-      <section style={{ backgroundColor: 'var(--color-white)', padding: '60px 0', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 40px' }}>
-            <h2 className="editorial-title" style={{ fontSize: '2rem', marginBottom: 12 }}>
-              How KaamConnect Works
-            </h2>
-            <p style={{ color: 'var(--color-secondary-text)', fontSize: '0.95rem' }}>
-              Built specifically for Mumbai’s distinct marketplace dynamics — separating direct services, short gigs, and long-term hiring.
-            </p>
+      {/* 3. FEATURED MUMBAI SERVICE PROFESSIONALS (Connected to Backend Database) */}
+      <section style={{ padding: '40px 0 54px', backgroundColor: '#F8FAFC' }}>
+        <div className="container" style={{ maxWidth: '1240px', margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.35rem',
+                  fontWeight: 800,
+                  color: '#0B2F57',
+                  marginBottom: '4px',
+                }}
+              >
+                Featured Technicians in Mumbai
+              </h2>
+              <p style={{ color: '#667085', fontSize: '0.875rem' }}>
+                Verified background checks, transparent hourly rates, zero booking fee
+              </p>
+            </div>
+            <Link
+              to="/services"
+              style={{
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                color: '#123F73',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <span>Explore All</span>
+              <ChevronRight size={15} />
+            </Link>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
-            {/* For Customers */}
-            <div className="card" style={{ padding: '28px' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: 'var(--color-pale-green)', color: 'var(--color-primary-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                <Wrench size={22} />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 10 }}>For Customers & Homes</h3>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.875rem', color: 'var(--color-secondary-text)' }}>
-                <li style={{ display: 'flex', gap: 8 }}><CheckCircle size={16} color="var(--color-primary-green)" /> Browse verified neighborhood professionals</li>
-                <li style={{ display: 'flex', gap: 8 }}><CheckCircle size={16} color="var(--color-primary-green)" /> Transparent rates with zero hidden platform markups</li>
-                <li style={{ display: 'flex', gap: 8 }}><CheckCircle size={16} color="var(--color-primary-green)" /> Direct scheduling with instant confirmation tracking</li>
-              </ul>
-            </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
+              gap: '20px',
+            }}
+          >
+            {services.map((srv) => (
+              <div
+                key={srv.id}
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '12px',
+                  border: '1px solid #E2E8F0',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#123F73', backgroundColor: '#EFF6FF', padding: '2px 8px', borderRadius: '4px' }}>
+                      {srv.category_name}
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.8rem', fontWeight: 700, color: '#1E293B' }}>
+                      <Star size={13} fill="#FF851B" color="#FF851B" />
+                      <span>4.8</span>
+                    </div>
+                  </div>
 
-            {/* For Workers */}
-            <div className="card" style={{ padding: '28px' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: '#FEF0E6', color: 'var(--color-action-orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                <Users size={22} />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 10 }}>For Workers & Technicians</h3>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.875rem', color: 'var(--color-secondary-text)' }}>
-                <li style={{ display: 'flex', gap: 8 }}><CheckCircle size={16} color="var(--color-action-orange)" /> Create service listings and receive direct local bookings</li>
-                <li style={{ display: 'flex', gap: 8 }}><CheckCircle size={16} color="var(--color-action-orange)" /> Apply for high-paying shift gigs with guaranteed payouts</li>
-                <li style={{ display: 'flex', gap: 8 }}><CheckCircle size={16} color="var(--color-action-orange)" /> Find full-time permanent jobs with PF and ESIC benefits</li>
-              </ul>
-            </div>
+                  <h3 style={{ fontSize: '0.975rem', fontWeight: 700, color: '#0B2F57', marginBottom: '4px' }}>
+                    <Link to={`/services/${srv.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                      {srv.title}
+                    </Link>
+                  </h3>
 
-            {/* For Employers */}
-            <div className="card" style={{ padding: '28px' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: 'var(--color-warning-bg)', color: 'var(--color-warning)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                <Briefcase size={22} />
+                  <p style={{ fontSize: '0.8rem', color: '#667085', marginBottom: '8px' }}>
+                    Provider: <strong>{srv.worker_name}</strong>
+                  </p>
+
+                  <div style={{ color: '#FF851B', fontWeight: 800, fontSize: '1rem' }}>
+                    ₹{srv.pricing.amount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#667085' }}>/ {srv.pricing.unit}</span>
+                  </div>
+                </div>
+
+                <Link
+                  to={`/services/${srv.id}`}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'center',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    border: '1px solid #123F73',
+                    color: '#123F73',
+                    fontSize: '0.825rem',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = '#123F73';
+                    e.currentTarget.style.color = '#FFFFFF';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#123F73';
+                  }}
+                >
+                  View Details & Book
+                </Link>
               </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 10 }}>For Employers & Businesses</h3>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.875rem', color: 'var(--color-secondary-text)' }}>
-                <li style={{ display: 'flex', gap: 8 }}><CheckCircle size={16} color="var(--color-warning)" /> Post shift requirements and hire warehouse or event staff fast</li>
-                <li style={{ display: 'flex', gap: 8 }}><CheckCircle size={16} color="var(--color-warning)" /> Post permanent vacancies with organized applicant pipeline</li>
-                <li style={{ display: 'flex', gap: 8 }}><CheckCircle size={16} color="var(--color-warning)" /> Shortlist, interview, and recruit without agency middlemen</li>
-              </ul>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 5. DATABASE-BACKED FEATURED OPPORTUNITIES */}
-      <section style={{ padding: '60px 0' }}>
-        <div className="container">
-          {/* Recent Gigs */}
-          <div style={{ marginBottom: '48px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <div>
-                <span className="badge badge-orange" style={{ marginBottom: 6 }}>Urgent Shifts</span>
-                <h3 className="editorial-title" style={{ fontSize: '1.6rem' }}>Recent Temporary Gigs in Mumbai</h3>
-              </div>
-              <Link to="/gigs" style={{ color: 'var(--color-action-orange)', fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                View all gigs <ArrowRight size={16} />
-              </Link>
+      {/* 4. CAREER & FULL-TIME OPPORTUNITIES (Connected to Backend Database) */}
+      <section style={{ padding: '40px 0 60px', backgroundColor: '#FFFFFF' }}>
+        <div className="container" style={{ maxWidth: '1240px', margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.35rem',
+                  fontWeight: 800,
+                  color: '#0B2F57',
+                  marginBottom: '4px',
+                }}
+              >
+                Long-Term Career Jobs in Mumbai
+              </h2>
+              <p style={{ color: '#667085', fontSize: '0.875rem' }}>
+                Permanent roles with monthly salaries, PF benefits, and verified employers
+              </p>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-              {gigs.map((gig) => (
-                <div key={gig.id} className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                      <span className="badge badge-neutral"><MapPin size={12} /> {gig.locality_name || 'Mumbai'}</span>
-                      <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary-green)' }}>
-                        ₹{gig.pay_amount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-secondary-text)' }}>/ {gig.pay_unit}</span>
-                      </span>
-                    </div>
-                    <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 8 }}>{gig.title}</h4>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)', lineHeight: 1.5, marginBottom: 14 }}>
-                      {gig.description.slice(0, 110)}...
-                    </p>
-                  </div>
-                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)' }}>
-                      Shift: {gig.shift_date} • {gig.openings} openings
-                    </span>
-                    <Link to={`/gigs/${gig.id}`} className="btn btn-outline btn-sm">
-                      Details & Apply
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Link
+              to="/jobs"
+              style={{
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                color: '#123F73',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <span>View All Jobs</span>
+              <ChevronRight size={15} />
+            </Link>
           </div>
 
-          {/* Long-Term Jobs */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <div>
-                <span className="badge badge-green" style={{ marginBottom: 6 }}>Full-Time Careers</span>
-                <h3 className="editorial-title" style={{ fontSize: '1.6rem' }}>Long-Term Opportunities</h3>
-              </div>
-              <Link to="/jobs" style={{ color: 'var(--color-primary-green)', fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                View all jobs <ArrowRight size={16} />
-              </Link>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-              {jobs.map((job) => (
-                <div key={job.id} className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                      <span className="badge badge-neutral"><MapPin size={12} /> {job.locality_name || 'Mumbai'}</span>
-                      <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-primary-green)' }}>
-                        ₹{job.salary_min} - ₹{job.salary_max} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-secondary-text)' }}>/ {job.pay_period}</span>
-                      </span>
-                    </div>
-                    <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 8 }}>{job.title}</h4>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--color-secondary-text)', lineHeight: 1.5, marginBottom: 14 }}>
-                      {job.description.slice(0, 110)}...
-                    </p>
-                  </div>
-                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary-text)' }}>
-                      {job.employment_type.replace('_', ' ').toUpperCase()} • {job.schedule}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gap: '20px',
+            }}
+          >
+            {jobs.map((job) => (
+              <div
+                key={job.id}
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '12px',
+                  border: '1px solid #E2E8F0',
+                  padding: '18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '14px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#059669', backgroundColor: '#ECFDF5', padding: '2px 8px', borderRadius: '4px' }}>
+                      {job.employment_type?.replace('_', ' ').toUpperCase()}
                     </span>
-                    <Link to={`/jobs/${job.id}`} className="btn btn-outline btn-sm">
-                      View Vacancy
+                    <span style={{ color: '#FF851B', fontWeight: 800, fontSize: '0.95rem' }}>
+                      ₹{job.salary_min?.toLocaleString()} - ₹{job.salary_max?.toLocaleString()} / mo
+                    </span>
+                  </div>
+
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0B2F57', marginBottom: '4px' }}>
+                    <Link to={`/jobs/${job.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                      {job.title}
                     </Link>
+                  </h3>
+
+                  <p style={{ fontSize: '0.825rem', color: '#667085', marginBottom: '6px' }}>
+                    {job.employer_name || 'Verified Mumbai Enterprise'}
+                  </p>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.775rem', color: '#94A3B8' }}>
+                    <MapPin size={12} color="#FF851B" />
+                    <span>{job.locality_name || 'Mumbai'}</span>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                <Link
+                  to={`/jobs/${job.id}`}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'center',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    border: '1px solid #123F73',
+                    color: '#123F73',
+                    fontSize: '0.825rem',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = '#123F73';
+                    e.currentTarget.style.color = '#FFFFFF';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#123F73';
+                  }}
+                >
+                  Apply Now
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </section>
+
+      {/* Responsive Style Tweaks */}
+      <style>{`
+        @media (max-width: 1024px) {
+          .categories-grid {
+            grid-template-columns: repeat(5, 1fr) !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .landing-hero-container {
+            min-height: 380px !important;
+            padding: 24px 16px 20px !important;
+          }
+          .categories-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+          }
+          .search-divider {
+            display: none !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .categories-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 8px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

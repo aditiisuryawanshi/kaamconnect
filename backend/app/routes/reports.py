@@ -13,4 +13,4 @@ def create_report():
     payload = request.get_json() or {}
     validated = validate_schema(ReportCreateSchema, payload)
     report = ModerationService.create_report(str(g.current_user["_id"]), validated)
-    return success_response(report, message="Report submitted for platform review. Thank you for keeping KaamConnect safe.", status_code=201)
+    return success_response(report, message="Report submitted for platform review. Thank you for keeping RozgaarSetu safe.", status_code=201)

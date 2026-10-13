@@ -75,7 +75,7 @@ def test_booking_workflow_and_concurrency(client):
     assert bkg_res.status_code == 201
     booking = bkg_res.get_json()["data"]
     assert booking["status"] == "requested"
-    assert booking["booking_reference"].startswith("KC-BKG-")
+    assert booking["booking_reference"].startswith("RS-BKG-")
 
     # Worker accepts booking
     accept_res = client.post(f"/api/v1/bookings/{booking['id']}/accept", json={}, headers=w_headers)

@@ -244,7 +244,7 @@ def test_full_platform_e2e_journeys():
 
     # Admin demo logs in
     admin_login = requests.post(f"{BASE_URL}/auth/login", json={
-        "email": "admin@demo.kaamconnect.in",
+        "email": "admin@demo.rozgaarsetu.in",
         "password": "DemoPassword123"
     })
     assert admin_login.status_code == 200

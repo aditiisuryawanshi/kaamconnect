@@ -9,7 +9,7 @@ class MongoExtension:
 
     def init_app(self, app):
         uri = app.config.get("MONGODB_URI", "mongodb://localhost:27017")
-        db_name = app.config.get("MONGODB_DATABASE", "kaamconnect")
+        db_name = app.config.get("MONGODB_DATABASE", "rozgaarsetu")
         
         # In test mode or when running tests, mongomock can be optionally passed
         if app.config.get("USE_MONGOMOCK", False):

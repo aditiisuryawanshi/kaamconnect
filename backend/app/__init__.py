@@ -48,6 +48,6 @@ def create_app(config_class=Config):
 
     @app.route("/api/health", methods=["GET"])
     def health_check():
-        return {"status": "ok", "app": "KaamConnect API", "version": "1.0.0"}
+        return {"status": "ok", "app": "RozgaarSetu API", "version": "1.0.0"}
 
     return app
