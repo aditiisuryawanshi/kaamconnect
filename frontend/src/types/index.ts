@@ -40,13 +40,25 @@ export interface ServicePricing {
   additional_notes?: string;
 }
 
+export interface ImageMetadata {
+  image_url: string;
+  alt_text: string;
+  source: string;
+  license: string;
+  license_url: string;
+  image_type: 'profile_portrait' | 'work_photograph' | 'employer_logo';
+  fallback_local?: string;
+}
+
 export interface ServiceListing {
   id: string;
   worker_id: string;
   worker_name?: string;
   worker_photo_url?: string;
+  worker_photo_alt_text?: string;
   worker_headline?: string;
   worker_profile_id?: string;
+  worker_is_demo?: boolean;
   category_id: string;
   category_name?: string;
   category_slug?: string;
@@ -59,6 +71,9 @@ export interface ServiceListing {
   time_slots: string[];
   booking_lead_time_hours: number;
   image_urls: string[];
+  image_metadata?: ImageMetadata[];
+  photo_alt_text?: string;
+  is_demo?: boolean;
   status: 'draft' | 'published' | 'paused' | 'archived';
   published_at?: string;
   created_at: string;
@@ -108,6 +123,8 @@ export interface Gig {
   employer_name?: string;
   employer_type?: 'individual' | 'business';
   employer_logo_url?: string;
+  employer_logo_alt_text?: string;
+  employer_is_demo?: boolean;
   title: string;
   category_id: string;
   category_name?: string;
@@ -130,6 +147,10 @@ export interface Gig {
   payment_conditions?: string;
   experience_requirements?: string;
   application_deadline?: string;
+  image_url?: string;
+  image_metadata?: ImageMetadata;
+  photo_alt_text?: string;
+  is_demo?: boolean;
   status: 'draft' | 'published' | 'closed';
   published_at?: string;
   created_at: string;
@@ -145,7 +166,13 @@ export interface Job {
   employer_name?: string;
   employer_type?: 'individual' | 'business';
   employer_logo_url?: string;
+  employer_logo_alt_text?: string;
+  employer_is_demo?: boolean;
   employer_description?: string;
+  image_url?: string;
+  image_metadata?: ImageMetadata;
+  photo_alt_text?: string;
+  is_demo?: boolean;
   title: string;
   category_id?: string;
   description: string;
@@ -210,12 +237,17 @@ export interface Application {
 export interface WorkerProfile {
   id: string;
   user_id: string;
+  name?: string;
   user_name?: string;
   user_email?: string;
   user_phone?: string;
   headline: string;
   bio: string;
   profile_photo_url?: string;
+  photo_alt_text?: string;
+  photo_source?: string;
+  photo_license?: string;
+  is_demo?: boolean;
   preferred_locality_ids: string[];
   preferred_localities?: Array<{ id: string; name: string }>;
   work_preferences: string[];

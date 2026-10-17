@@ -13,3 +13,13 @@ def get_localities():
 def get_categories():
     categories = list(mongo.db.service_categories.find({"active": True}).sort("sort_order", 1))
     return success_response(categories)
+
+@meta_bp.route("/gig-roles", methods=["GET"])
+def get_gig_roles():
+    from app.database.catalogue import GIG_ROLES
+    return success_response(GIG_ROLES)
+
+@meta_bp.route("/job-roles", methods=["GET"])
+def get_job_roles():
+    from app.database.catalogue import JOB_ROLES
+    return success_response(JOB_ROLES)

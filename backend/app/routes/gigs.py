@@ -12,6 +12,7 @@ def list_gigs():
     locality_id = request.args.get("locality")
     category_slug = request.args.get("category")
     keyword = request.args.get("keyword")
+    role = request.args.get("role")
     min_pay = request.args.get("min_pay")
     max_pay = request.args.get("max_pay")
     sort_by = request.args.get("sort", "newest")
@@ -22,6 +23,7 @@ def list_gigs():
         locality_id=locality_id,
         category_slug=category_slug,
         keyword=keyword,
+        role=role,
         min_pay=min_pay,
         max_pay=max_pay,
         sort_by=sort_by,

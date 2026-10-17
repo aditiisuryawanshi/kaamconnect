@@ -5,6 +5,11 @@ import pytest
 BASE_URL = "http://127.0.0.1:5000/api/v1"
 
 def test_full_platform_e2e_journeys():
+    try:
+        requests.get(f"{BASE_URL}/meta/localities", timeout=1)
+    except requests.exceptions.ConnectionError:
+        pytest.skip("Live server is not running on port 5000; skipping live HTTP E2E test")
+
     # Helper for unique emails
     import time
     ts = int(time.time() * 1000)

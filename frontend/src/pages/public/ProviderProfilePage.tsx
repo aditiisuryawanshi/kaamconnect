@@ -67,35 +67,84 @@ export const ProviderProfilePage: React.FC = () => {
       <div className="card" style={{ padding: '32px', marginBottom: '32px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            <div style={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              backgroundColor: 'var(--color-brand-primary)',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '2rem',
-              boxShadow: 'var(--shadow-card)'
-            }}>
-              {provider.user_name?.charAt(0) || 'P'}
-            </div>
+            {provider.profile_photo_url ? (
+              <div style={{ position: 'relative' }}>
+                <img
+                  src={provider.profile_photo_url}
+                  alt={provider.photo_alt_text || `${provider.user_name} - Professional Portrait`}
+                  style={{
+                    width: 88,
+                    height: 88,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '3px solid #FFF1E5',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  }}
+                  loading="lazy"
+                />
+                {provider.is_demo && (
+                  <span style={{
+                    position: 'absolute',
+                    bottom: '-4px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#FEF3C7',
+                    color: '#92400E',
+                    fontSize: '0.65rem',
+                    fontWeight: 800,
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    border: '1px solid #FCD34D',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    DEMO
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div style={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-brand-primary)',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 800,
+                fontSize: '2rem',
+                boxShadow: 'var(--shadow-card)'
+              }}>
+                {provider.user_name?.charAt(0) || 'P'}
+              </div>
+            )}
             <div>
-              <h1 className="brand-title" style={{ fontSize: '1.85rem', marginBottom: '6px' }}>
-                {provider.user_name}
-              </h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <h1 className="brand-title" style={{ fontSize: '1.85rem', marginBottom: 0 }}>
+                  {provider.user_name}
+                </h1>
+                {provider.is_demo && (
+                  <span className="badge badge-warning" style={{ backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D', fontSize: '0.75rem' }}>
+                    Demo Profile
+                  </span>
+                )}
+              </div>
               <p style={{ fontSize: '1rem', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
-                {provider.headline || 'Verified Service Professional'}
+                {provider.headline || 'Service Professional'}
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.85rem', color: 'var(--color-text-secondary)', flexWrap: 'wrap' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Award size={16} color="var(--color-action-primary)" /> {provider.experience_years} Years Experience
                 </span>
-                <span className="badge badge-navy">
-                  <Shield size={12} /> Verified on RozgaarSetu
-                </span>
+                {provider.is_demo ? (
+                  <span className="badge" style={{ backgroundColor: '#F1F5F9', color: '#475467', border: '1px solid #CBD5E1' }}>
+                    Fictional Demonstration Profile
+                  </span>
+                ) : (
+                  <span className="badge badge-navy">
+                    <Shield size={12} /> Verified on RozgaarSetu
+                  </span>
+                )}
               </div>
             </div>
           </div>

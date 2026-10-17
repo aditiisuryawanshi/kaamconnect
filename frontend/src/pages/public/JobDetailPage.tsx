@@ -58,7 +58,7 @@ export const JobDetailPage: React.FC = () => {
       const res = await apiRequest<Job>(`/jobs/${jobId}`);
       return res.data;
     },
-    enabled: !!jobId && !jobId.startsWith('demo-'),
+    enabled: !!jobId,
   });
 
   const applyMutation = useMutation({
@@ -94,11 +94,13 @@ export const JobDetailPage: React.FC = () => {
   // Safe fallback display data matching design screenshot
   const displayTitle = job?.title || 'Security Guard (Full-time)';
   const displayEmployer = job?.employer_name || 'ABC Security Pvt Ltd';
-  const displayLocality = job?.locality_name ? `${job.locality_name}, Mumbai` : 'Navi Mumbai';
+  const displayLocality = job?.locality_name ? `${job.locality_name}, Mumbai` : 'Mumbai';
   const displaySalaryMin = job?.salary_min || 15000;
   const displaySalaryMax = job?.salary_max || 20000;
   const displayPayPeriod = job?.pay_period || 'month';
-  const heroImage = getJobDetailHero(displayTitle);
+  const heroImage = job?.image_url || getJobDetailHero(displayTitle);
+  const heroAlt = job?.photo_alt_text || `${displayTitle} - Mumbai Employment Opportunity`;
+  const isDemoJob = Boolean(job?.is_demo || job?.employer_is_demo);
 
   return (
     <div style={{ backgroundColor: '#F8FAFC', minHeight: '85vh', padding: '24px 0 64px' }}>
@@ -119,12 +121,32 @@ export const JobDetailPage: React.FC = () => {
           <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
             
             {/* Banner Photo */}
-            <div style={{ position: 'relative', width: '100%', height: '340px', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' }}>
+            <div style={{ position: 'relative', width: '100%', height: '340px', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px', backgroundColor: '#F1F5F9' }}>
               <img
                 src={heroImage}
-                alt={displayTitle}
+                alt={heroAlt}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.src = '/assets/categories/moving_loading.jpg';
+                }}
               />
+              {isDemoJob && (
+                <div style={{
+                  position: 'absolute',
+                  top: '12px',
+                  left: '12px',
+                  backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                  color: '#FDE68A',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  letterSpacing: '0.5px'
+                }}>
+                  DEMO JOB LISTING
+                </div>
+              )}
             </div>
 
             {/* Title */}
@@ -140,11 +162,26 @@ export const JobDetailPage: React.FC = () => {
               {displayTitle}
             </h1>
 
-            {/* Subline: Company, Rating, Location */}
+            {/* Subline: Company Logo/Name, Rating, Location */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#334155' }}>
-                {displayEmployer}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {job?.employer_logo_url && (
+                  <img
+                    src={job.employer_logo_url}
+                    alt={job.employer_logo_alt_text || displayEmployer}
+                    style={{ width: '24px', height: '24px', borderRadius: '4px', objectFit: 'contain' }}
+                    loading="lazy"
+                  />
+                )}
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#334155' }}>
+                  {displayEmployer}
+                </span>
+              </div>
+              {isDemoJob && (
+                <span className="badge badge-warning" style={{ backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D', fontSize: '0.75rem' }}>
+                  Demo Position
+                </span>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.875rem', fontWeight: 700, color: '#1E293B' }}>
                 <Star size={15} fill="#FF851B" color="#FF851B" />
                 <span>4.2</span>

@@ -1,13 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
 import { apiRequest } from '../../services/apiClient';
 import { Job, Locality } from '../../types';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 // High-quality photographic avatars representing trades/roles in Mumbai
-const getJobPhoto = (title: string, category: string = ''): string => {
-  const t = (title + ' ' + category).toLowerCase();
+const getJobPhoto = (title: string): string => {
+  const t = title.toLowerCase();
   if (t.includes('delivery') || t.includes('courier') || t.includes('driver')) {
     return 'https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=300&q=80';
   }
@@ -20,102 +21,26 @@ const getJobPhoto = (title: string, category: string = ''): string => {
   if (t.includes('electrician') || t.includes('electrical') || t.includes('technician') || t.includes('facility')) {
     return 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=80';
   }
-  if (t.includes('office') || t.includes('assistant') || t.includes('admin') || t.includes('coordinator')) {
+  if (t.includes('office') || t.includes('assistant') || t.includes('admin') || t.includes('clerk')) {
     return 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80';
   }
-  if (t.includes('cook') || t.includes('chef') || t.includes('catering') || t.includes('kitchen')) {
+  if (t.includes('cook') || t.includes('chef') || t.includes('kitchen')) {
     return 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=300&q=80';
   }
-  if (t.includes('plumb') || t.includes('pipe')) {
-    return 'https://images.unsplash.com/photo-1505798577917-a65157d3320a?auto=format&fit=crop&w=300&q=80';
+  if (t.includes('plumb') || t.includes('sanitation')) {
+    return 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=300&q=80';
   }
-  if (t.includes('clean') || t.includes('housekeep')) {
+  if (t.includes('housekeep') || t.includes('cleaner') || t.includes('hygiene')) {
     return 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=300&q=80';
+  }
+  if (t.includes('appliance') || t.includes('hvac') || t.includes('refrigeration')) {
+    return 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?auto=format&fit=crop&w=300&q=80';
+  }
+  if (t.includes('salon') || t.includes('beauty') || t.includes('stylist') || t.includes('makeup')) {
+    return 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=300&q=80';
   }
   return 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=300&q=80';
 };
-
-interface DisplayJobItem {
-  id: string;
-  title: string;
-  employer_name: string;
-  locality_name: string;
-  salary_min: number;
-  salary_max: number;
-  pay_period: string;
-  employment_type: string;
-  photo: string;
-}
-
-// Fallback curated listings to ensure full diverse 6-card grid mirroring design reference exactly
-const DEMO_JOBS_FALLBACK: DisplayJobItem[] = [
-  {
-    id: 'demo-job-1',
-    title: 'Delivery Executive',
-    employer_name: 'Local Delivery Services',
-    locality_name: 'Andheri, Mumbai',
-    salary_min: 18000,
-    salary_max: 25000,
-    pay_period: 'month',
-    employment_type: 'full_time',
-    photo: 'https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=300&q=80',
-  },
-  {
-    id: 'demo-job-2',
-    title: 'Security Guard',
-    employer_name: 'ABC Security Pvt. Ltd.',
-    locality_name: 'Navi Mumbai',
-    salary_min: 15000,
-    salary_max: 20000,
-    pay_period: 'month',
-    employment_type: 'full_time',
-    photo: 'https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=300&q=80',
-  },
-  {
-    id: 'demo-job-3',
-    title: 'Warehouse Helper',
-    employer_name: 'LogiMove India',
-    locality_name: 'Bhiwandi, Mumbai',
-    salary_min: 14000,
-    salary_max: 18000,
-    pay_period: 'month',
-    employment_type: 'full_time',
-    photo: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=300&q=80',
-  },
-  {
-    id: 'demo-job-4',
-    title: 'Electrician',
-    employer_name: 'Shree Infra Services',
-    locality_name: 'Andheri, Mumbai',
-    salary_min: 20000,
-    salary_max: 30000,
-    pay_period: 'month',
-    employment_type: 'full_time',
-    photo: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=80',
-  },
-  {
-    id: 'demo-job-5',
-    title: 'Office Assistant',
-    employer_name: 'Shivam Enterprises',
-    locality_name: 'Lower Parel, Mumbai',
-    salary_min: 18000,
-    salary_max: 25000,
-    pay_period: 'month',
-    employment_type: 'full_time',
-    photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
-  },
-  {
-    id: 'demo-job-6',
-    title: 'Cook (Full-time)',
-    employer_name: 'Family Household',
-    locality_name: 'Malad, Mumbai',
-    salary_min: 15000,
-    salary_max: 22000,
-    pay_period: 'month',
-    employment_type: 'full_time',
-    photo: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=300&q=80',
-  },
-];
 
 export const JobsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -124,12 +49,15 @@ export const JobsPage: React.FC = () => {
   const keywordParam = searchParams.get('keyword') || '';
   const roleParam = searchParams.get('role') || '';
   const salaryParam = searchParams.get('salary') || '';
+  const pageParam = parseInt(searchParams.get('page') || '1', 10);
+  const limit = 12;
 
   const [keyword, setKeyword] = useState(keywordParam);
   const [selectedRole, setSelectedRole] = useState(roleParam);
   const [selectedLocality, setSelectedLocality] = useState(localityParam);
   const [selectedSalary, setSelectedSalary] = useState(salaryParam);
 
+  // Fetch Mumbai localities
   const { data: localities = [] } = useQuery({
     queryKey: ['localities'],
     queryFn: async () => {
@@ -138,61 +66,35 @@ export const JobsPage: React.FC = () => {
     },
   });
 
+  // Fetch job roles
+  const { data: jobRoles = [] } = useQuery({
+    queryKey: ['job-roles'],
+    queryFn: async () => {
+      const res = await apiRequest<Array<{ slug: string; name: string }>>('/meta/job-roles');
+      return res.data;
+    },
+  });
+
+  // Fetch paginated jobs from backend API
   const { data: jobData, isLoading } = useQuery({
-    queryKey: ['jobs-discovery', selectedLocality, keywordParam],
+    queryKey: ['jobs-discovery', localityParam, roleParam, keywordParam, salaryParam, pageParam],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (selectedLocality) params.set('locality', selectedLocality);
+      if (localityParam) params.set('locality', localityParam);
+      if (roleParam) params.set('role', roleParam);
       if (keywordParam) params.set('keyword', keywordParam);
-      params.set('limit', '20');
+      if (salaryParam) params.set('min_salary', salaryParam);
+      params.set('page', pageParam.toString());
+      params.set('limit', limit.toString());
 
       const res = await apiRequest<Job[]>(`/jobs?${params.toString()}`);
       return res;
     },
   });
 
-  // Combine real jobs with photographic fallbacks
-  const displayJobs = useMemo(() => {
-    const backendJobs: DisplayJobItem[] = (jobData?.data || []).map((j) => ({
-      id: j.id,
-      title: j.title,
-      employer_name: j.employer_name || 'Verified Mumbai Enterprise',
-      locality_name: j.locality_name ? `${j.locality_name}, Mumbai` : 'Mumbai',
-      salary_min: j.salary_min,
-      salary_max: j.salary_max,
-      pay_period: j.pay_period || 'month',
-      employment_type: j.employment_type || 'full_time',
-      photo: getJobPhoto(j.title),
-    }));
-
-    // If backend has items, prepend them to the demo set or use them
-    const combined: DisplayJobItem[] = [...backendJobs];
-    for (const item of DEMO_JOBS_FALLBACK) {
-      if (!combined.some((c) => c.title.toLowerCase() === item.title.toLowerCase())) {
-        combined.push(item);
-      }
-    }
-
-    // Apply client filters
-    return combined.filter((job) => {
-      if (keyword) {
-        const q = keyword.toLowerCase();
-        const matches = job.title.toLowerCase().includes(q) || job.employer_name.toLowerCase().includes(q);
-        if (!matches) return false;
-      }
-      if (selectedRole && !job.title.toLowerCase().includes(selectedRole.toLowerCase())) {
-        return false;
-      }
-      if (selectedLocality && !job.locality_name.toLowerCase().includes(selectedLocality.toLowerCase())) {
-        return false;
-      }
-      if (selectedSalary) {
-        const minReq = parseInt(selectedSalary, 10);
-        if (job.salary_max < minReq) return false;
-      }
-      return true;
-    });
-  }, [jobData, keyword, selectedRole, selectedLocality, selectedSalary]);
+  const jobs = jobData?.data || [];
+  const pagination = jobData?.pagination || { total: 0, page: 1, limit, pages: 1 };
+  const totalPages = pagination.pages || Math.ceil((pagination.total || 0) / limit) || 1;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,7 +103,24 @@ export const JobsPage: React.FC = () => {
     if (selectedRole) params.set('role', selectedRole);
     if (selectedLocality) params.set('locality', selectedLocality);
     if (selectedSalary) params.set('salary', selectedSalary);
+    params.set('page', '1');
     setSearchParams(params);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    const params = new URLSearchParams(searchParams);
+    params.set('page', newPage.toString());
+    setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleReset = () => {
+    setKeyword('');
+    setSelectedRole('');
+    setSelectedLocality('');
+    setSelectedSalary('');
+    setSearchParams({});
   };
 
   return (
@@ -221,7 +140,7 @@ export const JobsPage: React.FC = () => {
             Jobs in Mumbai
           </h1>
           <p style={{ color: '#667085', fontSize: '0.95rem' }}>
-            Find full-time and long-term opportunities.
+            Find full-time and verified long-term employment opportunities across Mumbai neighbourhoods.
           </p>
         </div>
 
@@ -238,7 +157,7 @@ export const JobsPage: React.FC = () => {
             borderRadius: '12px',
             border: '1px solid #E2E8F0',
             boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-            marginBottom: '32px',
+            marginBottom: '24px',
           }}
         >
           {/* Search Input */}
@@ -250,7 +169,7 @@ export const JobsPage: React.FC = () => {
             />
             <input
               type="text"
-              placeholder="Search jobs..."
+              placeholder="Search jobs by title or skills..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               style={{
@@ -267,7 +186,7 @@ export const JobsPage: React.FC = () => {
           </div>
 
           {/* Role Dropdown */}
-          <div style={{ flex: '1 1 170px' }}>
+          <div style={{ flex: '1 1 180px' }}>
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
@@ -282,19 +201,32 @@ export const JobsPage: React.FC = () => {
                 cursor: 'pointer',
               }}
             >
-              <option value="">All Roles</option>
-              <option value="Delivery">Delivery Executive</option>
-              <option value="Security">Security Guard</option>
-              <option value="Warehouse">Warehouse Helper</option>
-              <option value="Electrician">Electrician</option>
-              <option value="Office">Office Assistant</option>
-              <option value="Cook">Cook / Home Chef</option>
-              <option value="Plumber">Plumber</option>
+              <option value="">All Job Roles</option>
+              {jobRoles.length > 0 ? (
+                jobRoles.map((r) => (
+                  <option key={r.slug} value={r.slug}>
+                    {r.name}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value="delivery-executive">Delivery Executive</option>
+                  <option value="security-guard">Security Guard</option>
+                  <option value="warehouse-associate">Warehouse Associate</option>
+                  <option value="facility-electrician">Electrician & Technician</option>
+                  <option value="office-assistant">Office Assistant</option>
+                  <option value="cook-home-chef">Cook / Home Chef</option>
+                  <option value="commercial-plumber">Plumber</option>
+                  <option value="housekeeping-supervisor">Housekeeping Supervisor</option>
+                  <option value="appliance-technician">Appliance Technician</option>
+                  <option value="beautician-stylist">Salon Beautician</option>
+                </>
+              )}
             </select>
           </div>
 
           {/* Location Dropdown */}
-          <div style={{ flex: '1 1 170px' }}>
+          <div style={{ flex: '1 1 180px' }}>
             <select
               value={selectedLocality}
               onChange={(e) => setSelectedLocality(e.target.value)}
@@ -309,24 +241,17 @@ export const JobsPage: React.FC = () => {
                 cursor: 'pointer',
               }}
             >
-              <option value="">All Locations</option>
-              <option value="Andheri">Andheri, Mumbai</option>
-              <option value="Navi Mumbai">Navi Mumbai</option>
-              <option value="Bhiwandi">Bhiwandi, Mumbai</option>
-              <option value="Lower Parel">Lower Parel, Mumbai</option>
-              <option value="Malad">Malad, Mumbai</option>
-              <option value="Bandra">Bandra, Mumbai</option>
-              <option value="Powai">Powai, Mumbai</option>
+              <option value="">All Mumbai Localities</option>
               {localities.map((loc) => (
-                <option key={loc.id} value={loc.name}>
-                  {loc.name}, Mumbai
+                <option key={loc.id} value={loc.id}>
+                  {loc.name} ({loc.region})
                 </option>
               ))}
             </select>
           </div>
 
           {/* Salary Range Dropdown */}
-          <div style={{ flex: '1 1 170px' }}>
+          <div style={{ flex: '1 1 160px' }}>
             <select
               value={selectedSalary}
               onChange={(e) => setSelectedSalary(e.target.value)}
@@ -341,16 +266,47 @@ export const JobsPage: React.FC = () => {
                 cursor: 'pointer',
               }}
             >
-              <option value="">Salary Range</option>
+              <option value="">Any Salary</option>
               <option value="15000">₹15,000+ / mo</option>
               <option value="20000">₹20,000+ / mo</option>
               <option value="25000">₹25,000+ / mo</option>
               <option value="30000">₹30,000+ / mo</option>
             </select>
           </div>
+
+          <button
+            type="submit"
+            style={{
+              padding: '9px 20px',
+              backgroundColor: '#123F73',
+              color: '#FFFFFF',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Filter
+          </button>
         </form>
 
-        {/* 3-Column Card Grid */}
+        {/* Results Counter */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+          <p style={{ fontSize: '0.875rem', color: '#667085', margin: 0 }}>
+            Showing <strong>{jobs.length}</strong> {pagination.total ? `of ${pagination.total}` : ''} verified jobs in Mumbai
+          </p>
+          {(keyword || selectedRole || selectedLocality || selectedSalary) && (
+            <button
+              onClick={handleReset}
+              style={{ fontSize: '0.825rem', color: '#FF851B', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              Reset Filters
+            </button>
+          )}
+        </div>
+
+        {/* Card Grid */}
         {isLoading ? (
           <div
             style={{
@@ -367,134 +323,270 @@ export const JobsPage: React.FC = () => {
                   borderRadius: '12px',
                   padding: '20px',
                   border: '1px solid #E2E8F0',
-                  height: '160px',
+                  height: '170px',
+                  animation: 'pulse 1.5s infinite',
                 }}
               />
             ))}
           </div>
+        ) : jobs.length === 0 ? (
+          <EmptyState
+            icon={Briefcase}
+            title="No jobs match your selected criteria"
+            description="Try selecting a different locality or resetting your filters to explore available Mumbai opportunities."
+            actionText="Reset All Filters"
+            onAction={handleReset}
+          />
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-              gap: '20px',
-            }}
-          >
-            {displayJobs.map((job) => (
+          <>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                gap: '20px',
+                marginBottom: '36px',
+              }}
+            >
+              {jobs.map((job) => {
+                const photoUrl = job.image_url || getJobPhoto(job.title);
+                return (
+                  <div
+                    key={job.id}
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '12px',
+                      border: '1px solid #E2E8F0',
+                      padding: '16px 18px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '14px',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    {/* Top Section: Avatar + Details */}
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                      <div style={{ position: 'relative', width: '64px', height: '64px', flexShrink: 0 }}>
+                        <img
+                          src={photoUrl}
+                          alt={job.photo_alt_text || job.title}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: '10px',
+                            objectFit: 'cover',
+                          }}
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.src = '/assets/categories/moving_loading.jpg';
+                          }}
+                        />
+                        {Boolean(job.is_demo || job.employer_is_demo) && (
+                          <span style={{
+                            position: 'absolute',
+                            bottom: '-4px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                            color: '#FDE68A',
+                            fontSize: '0.55rem',
+                            fontWeight: 800,
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            letterSpacing: '0.4px',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            DEMO
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3
+                          style={{
+                            fontFamily: 'var(--font-display)',
+                            fontSize: '0.98rem',
+                            fontWeight: 700,
+                            color: '#0B2F57',
+                            marginBottom: '3px',
+                            lineHeight: 1.3,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <Link to={`/jobs/${job.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                            {job.title}
+                          </Link>
+                        </h3>
+                        <div
+                          style={{
+                            fontSize: '0.825rem',
+                            color: '#667085',
+                            marginBottom: '3px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                          }}
+                        >
+                          {job.employer_logo_url && (
+                            <img
+                              src={job.employer_logo_url}
+                              alt={job.employer_logo_alt_text || job.employer_name || 'Employer'}
+                              style={{ width: '16px', height: '16px', borderRadius: '3px', objectFit: 'contain' }}
+                              loading="lazy"
+                            />
+                          )}
+                          <span>{job.employer_name || 'Verified Mumbai Enterprise'}</span>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '0.775rem',
+                            color: '#94A3B8',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            marginBottom: '6px',
+                          }}
+                        >
+                          <MapPin size={12} color="#FF851B" />
+                          <span>{job.locality_name ? `${job.locality_name}, Mumbai` : 'Mumbai'}</span>
+                        </div>
+                        <div
+                          style={{
+                            color: '#FF851B',
+                            fontSize: '0.9rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          ₹{job.salary_min?.toLocaleString()} - ₹{job.salary_max?.toLocaleString()}{' '}
+                          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#667085' }}>
+                            / {job.pay_period}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Action: Apply Now */}
+                    <Link
+                      to={`/jobs/${job.id}`}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'center',
+                        padding: '8px 14px',
+                        borderRadius: '8px',
+                        border: '1px solid #123F73',
+                        color: '#123F73',
+                        fontWeight: 600,
+                        fontSize: '0.85rem',
+                        textDecoration: 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#123F73';
+                        e.currentTarget.style.color = '#FFFFFF';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = '#123F73';
+                      }}
+                    >
+                      View & Apply
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
               <div
-                key={job.id}
                 style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '12px',
-                  border: '1px solid #E2E8F0',
-                  padding: '16px 18px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                   display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  gap: '14px',
-                  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginTop: '20px',
                 }}
               >
-                {/* Top Section: Avatar + Details */}
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                  <img
-                    src={job.photo}
-                    alt={job.title}
-                    style={{
-                      width: '64px',
-                      height: '64px',
-                      borderRadius: '10px',
-                      objectFit: 'cover',
-                      flexShrink: 0,
-                    }}
-                    loading="lazy"
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '1rem',
-                        fontWeight: 700,
-                        color: '#0B2F57',
-                        marginBottom: '3px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {job.title}
-                    </h3>
-                    <div
-                      style={{
-                        fontSize: '0.825rem',
-                        color: '#667085',
-                        marginBottom: '3px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {job.employer_name}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.775rem',
-                        color: '#94A3B8',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        marginBottom: '6px',
-                      }}
-                    >
-                      <MapPin size={12} color="#FF851B" />
-                      <span>{job.locality_name}</span>
-                    </div>
-                    <div
-                      style={{
-                        color: '#FF851B',
-                        fontSize: '0.9rem',
-                        fontWeight: 700,
-                      }}
-                    >
-                      ₹{job.salary_min?.toLocaleString()} - ₹{job.salary_max?.toLocaleString()}{' '}
-                      <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#667085' }}>
-                        / {job.pay_period}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom Action: Apply Now */}
-                <Link
-                  to={`/jobs/${job.id}`}
+                <button
+                  onClick={() => handlePageChange(pageParam - 1)}
+                  disabled={pageParam <= 1}
                   style={{
-                    display: 'block',
-                    width: '100%',
-                    textAlign: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
                     padding: '8px 14px',
                     borderRadius: '8px',
-                    border: '1px solid #123F73',
-                    color: '#123F73',
-                    fontWeight: 600,
+                    border: '1px solid #E2E8F0',
+                    backgroundColor: pageParam <= 1 ? '#F1F5F9' : '#FFFFFF',
+                    color: pageParam <= 1 ? '#94A3B8' : '#334155',
+                    cursor: pageParam <= 1 ? 'not-allowed' : 'pointer',
                     fontSize: '0.85rem',
-                    textDecoration: 'none',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = '#123F73';
-                    e.currentTarget.style.color = '#FFFFFF';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#123F73';
+                    fontWeight: 600,
                   }}
                 >
-                  Apply Now
-                </Link>
+                  <ChevronLeft size={16} /> Prev
+                </button>
+
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, idx) => {
+                  let pNum = idx + 1;
+                  if (totalPages > 7) {
+                    if (pageParam > 4 && pageParam < totalPages - 2) {
+                      pNum = pageParam - 3 + idx;
+                    } else if (pageParam >= totalPages - 2) {
+                      pNum = totalPages - 6 + idx;
+                    }
+                  }
+                  const isActive = pNum === pageParam;
+                  return (
+                    <button
+                      key={pNum}
+                      onClick={() => handlePageChange(pNum)}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '8px',
+                        border: isActive ? '1px solid #123F73' : '1px solid #E2E8F0',
+                        backgroundColor: isActive ? '#123F73' : '#FFFFFF',
+                        color: isActive ? '#FFFFFF' : '#334155',
+                        fontWeight: isActive ? 700 : 500,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        minWidth: '38px',
+                      }}
+                    >
+                      {pNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => handlePageChange(pageParam + 1)}
+                  disabled={pageParam >= totalPages}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #E2E8F0',
+                    backgroundColor: pageParam >= totalPages ? '#F1F5F9' : '#FFFFFF',
+                    color: pageParam >= totalPages ? '#94A3B8' : '#334155',
+                    cursor: pageParam >= totalPages ? 'not-allowed' : 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  Next <ChevronRight size={16} />
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

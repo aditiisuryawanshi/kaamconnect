@@ -88,9 +88,43 @@ export const GigDetailPage: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', alignItems: 'start' }}>
         {/* Left Column: Gig Details */}
         <div>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+          {/* Work Photo Banner */}
+          <div style={{ position: 'relative', width: '100%', height: '280px', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px', backgroundColor: '#F1F5F9' }}>
+            <img
+              src={gig.image_url || 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80'}
+              alt={gig.photo_alt_text || `${gig.title} - Mumbai Shift Work`}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.src = '/assets/categories/moving_loading.jpg';
+              }}
+            />
+            {Boolean(gig.is_demo || gig.employer_is_demo) && (
+              <div style={{
+                position: 'absolute',
+                top: '12px',
+                left: '12px',
+                backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                color: '#FDE68A',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                padding: '4px 10px',
+                borderRadius: '6px',
+                letterSpacing: '0.5px'
+              }}>
+                DEMO GIG LISTING
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
             <span className="badge badge-orange">Shift Gig</span>
             <span className="badge badge-neutral"><MapPin size={12} color="var(--color-action-primary)" /> {gig.locality_name}</span>
+            {Boolean(gig.is_demo || gig.employer_is_demo) && (
+              <span className="badge badge-warning" style={{ backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D' }}>
+                Fictional Shift
+              </span>
+            )}
           </div>
 
           <h1 className="brand-title" style={{ fontSize: '2.2rem', lineHeight: 1.25, marginBottom: '16px' }}>
@@ -99,22 +133,39 @@ export const GigDetailPage: React.FC = () => {
 
           {/* Employer Card */}
           <div className="card" style={{ padding: '18px', backgroundColor: 'var(--color-surface-tint)', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '14px', border: '1px solid #C7D9ED' }}>
-            <div style={{
-              width: 44,
-              height: 44,
-              borderRadius: '8px',
-              backgroundColor: 'var(--color-brand-primary)',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Building size={22} />
-            </div>
+            {gig.employer_logo_url ? (
+              <img
+                src={gig.employer_logo_url}
+                alt={gig.employer_logo_alt_text || gig.employer_name || 'Employer Logo'}
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '8px',
+                  objectFit: 'contain',
+                  backgroundColor: '#FFFFFF',
+                  padding: '2px',
+                  border: '1px solid #CBD5E1'
+                }}
+                loading="lazy"
+              />
+            ) : (
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: '8px',
+                backgroundColor: 'var(--color-brand-primary)',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Building size={22} />
+              </div>
+            )}
             <div>
               <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-brand-deep)' }}>{gig.employer_name}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                {gig.employer_type === 'business' ? 'Registered Enterprise Employer' : 'Direct Verified Employer'}
+                {Boolean(gig.is_demo || gig.employer_is_demo) ? 'Transparent Demo Employer (Fictional Business)' : (gig.employer_type === 'business' ? 'Registered Enterprise Employer' : 'Direct Verified Employer')}
               </div>
             </div>
           </div>

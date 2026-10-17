@@ -99,7 +99,7 @@ export const ServiceDetailPage: React.FC = () => {
       }
       return res.data;
     },
-    enabled: !!serviceId && !serviceId.startsWith('demo-'),
+    enabled: !!serviceId,
   });
 
   // Booking mutation
@@ -146,8 +146,11 @@ export const ServiceDetailPage: React.FC = () => {
   const displayPrice = service?.pricing?.amount || 400;
   const displayUnit = service?.pricing?.unit || 'hour';
   const displayWorkerName = service?.worker_name || 'Ravi Sharma';
-  const displayWorkerPhoto = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80';
-  const heroImage = getServiceDetailHero(displayCategory, displayTitle);
+  const displayWorkerPhoto = service?.worker_photo_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80';
+  const displayWorkerAlt = service?.worker_photo_alt_text || `${displayWorkerName} - Verified Service Provider Portrait`;
+  const isDemoProfile = Boolean(service?.is_demo || service?.worker_is_demo);
+  const heroImage = (service?.image_urls && service.image_urls[0]) || getServiceDetailHero(displayCategory, displayTitle);
+  const heroAlt = service?.photo_alt_text || `${displayTitle} - Professional Service in Mumbai`;
   const offerings = getDefaultOfferings(displayCategory);
 
   return (
@@ -169,12 +172,32 @@ export const ServiceDetailPage: React.FC = () => {
             {/* Left Column: Details */}
             <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               {/* Hero Image */}
-              <div style={{ position: 'relative', width: '100%', height: '340px', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' }}>
+              <div style={{ position: 'relative', width: '100%', height: '340px', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px', backgroundColor: '#F1F5F9' }}>
                 <img
                   src={heroImage}
-                  alt={displayTitle}
+                  alt={heroAlt}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.src = '/assets/categories/' + (service?.category_slug || 'plumbing').replace(/-/g, '_') + '.jpg';
+                  }}
                 />
+                {isDemoProfile && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '12px',
+                    left: '12px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                    color: '#FDE68A',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    letterSpacing: '0.5px'
+                  }}>
+                    DEMO SERVICE LISTING
+                  </div>
+                )}
               </div>
 
               {/* Title & Reviews */}
@@ -274,13 +297,32 @@ export const ServiceDetailPage: React.FC = () => {
                   textAlign: 'center',
                 }}
               >
-                {/* Worker Avatar */}
-                <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 12px' }}>
+                {/* Worker Avatar & Portrait */}
+                <div style={{ position: 'relative', width: '88px', height: '88px', margin: '0 auto 14px' }}>
                   <img
                     src={displayWorkerPhoto}
-                    alt={displayWorkerName}
-                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '3px solid #FFF1E5' }}
+                    alt={displayWorkerAlt}
+                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '3px solid #FFF1E5', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}
+                    loading="lazy"
                   />
+                  {isDemoProfile && (
+                    <span style={{
+                      position: 'absolute',
+                      bottom: '-4px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      backgroundColor: '#FEF3C7',
+                      color: '#92400E',
+                      fontSize: '0.65rem',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      border: '1px solid #FCD34D',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      DEMO
+                    </span>
+                  )}
                 </div>
 
                 <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 700, color: '#0B2F57', marginBottom: '2px' }}>
@@ -342,21 +384,37 @@ export const ServiceDetailPage: React.FC = () => {
 
                 {/* Verification Checklist */}
                 <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '16px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.825rem', color: '#475467' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Zap size={14} color="#FF851B" />
-                    <span>Response Time: <strong>Within 1 hour</strong></span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Mail size={14} color="#059669" />
-                    <span>Email verified</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Phone size={14} color="#059669" />
-                    <span>Phone verified</span>
-                  </div>
+                  {isDemoProfile ? (
+                    <div style={{
+                      backgroundColor: '#FEF3C7',
+                      color: '#92400E',
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.75rem',
+                      lineHeight: 1.4,
+                      border: '1px solid #FDE68A'
+                    }}>
+                      <strong>Notice:</strong> This is a transparent demo listing seeded for testing Mumbai service marketplace workflows. Authentic trade photography and distinct worker portraits are curated.
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Zap size={14} color="#FF851B" />
+                        <span>Response Time: <strong>Within 1 hour</strong></span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Mail size={14} color="#059669" />
+                        <span>Email verified</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Phone size={14} color="#059669" />
+                        <span>Phone verified</span>
+                      </div>
+                    </>
+                  )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <MapPin size={14} color="#123F73" />
-                    <span>Location: Andheri, Mumbai</span>
+                    <span>Location: {service?.service_areas?.[0]?.name || 'Andheri'}, Mumbai</span>
                   </div>
                 </div>
               </div>

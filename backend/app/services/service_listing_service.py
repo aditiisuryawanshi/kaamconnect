@@ -122,6 +122,8 @@ class ServiceListingService:
         listing["worker_name"] = worker_user.get("name") if worker_user else "Worker"
         listing["worker_headline"] = worker_prof.get("headline") if worker_prof else ""
         listing["worker_photo_url"] = worker_prof.get("profile_photo_url") if worker_prof else None
+        listing["worker_photo_alt_text"] = worker_prof.get("photo_alt_text") if worker_prof else None
+        listing["worker_is_demo"] = worker_prof.get("is_demo", False) if worker_prof else False
         listing["worker_experience_years"] = worker_prof.get("experience_years", 0) if worker_prof else 0
         listing["worker_profile_id"] = str(worker_prof["_id"]) if worker_prof else None
 
@@ -144,16 +146,63 @@ class ServiceListingService:
             "moderation_status": "approved"
         }
 
+        target_category_id = None
         if category_slug:
-            cat = mongo.db.service_categories.find_one({"slug": category_slug})
-            if cat:
-                query["category_id"] = cat["_id"]
-            else:
-                return [], 0
+            cleaned_cat = str(category_slug).strip()
+            if cleaned_cat:
+                cat = None
+                if ObjectId.is_valid(cleaned_cat):
+                    cat = mongo.db.service_categories.find_one({"_id": ObjectId(cleaned_cat)})
+                if not cat:
+                    slug_variants = [
+                        cleaned_cat,
+                        cleaned_cat.lower(),
+                        cleaned_cat.lower().replace(" ", "-"),
+                        cleaned_cat.lower().replace(" ", "_"),
+                        cleaned_cat.lower().replace("-", "_"),
+                        cleaned_cat.lower().replace("_", "-"),
+                    ]
+                    cat = mongo.db.service_categories.find_one({
+                        "$or": [
+                            {"slug": {"$in": slug_variants}},
+                            {"name": {"$regex": f"^{re.escape(cleaned_cat)}$", "$options": "i"}},
+                            {"slug": {"$regex": f"^{re.escape(cleaned_cat)}$", "$options": "i"}}
+                        ]
+                    })
+                if cat:
+                    target_category_id = cat["_id"]
+                    query["category_id"] = target_category_id
+                else:
+                    return [], 0
 
+        target_locality_id = None
         if locality_id:
-            loc_oid = parse_object_id(locality_id)
-            query["service_area_ids"] = loc_oid
+            cleaned_loc = str(locality_id).strip()
+            if cleaned_loc:
+                loc = None
+                if ObjectId.is_valid(cleaned_loc):
+                    loc = mongo.db.localities.find_one({"_id": ObjectId(cleaned_loc)})
+                if not loc:
+                    slug_variants = [
+                        cleaned_loc,
+                        cleaned_loc.lower(),
+                        cleaned_loc.lower().replace(" ", "-"),
+                        cleaned_loc.lower().replace(" ", "_"),
+                        cleaned_loc.lower().replace("-", "_"),
+                        cleaned_loc.lower().replace("_", "-"),
+                    ]
+                    loc = mongo.db.localities.find_one({
+                        "$or": [
+                            {"slug": {"$in": slug_variants}},
+                            {"name": {"$regex": f"^{re.escape(cleaned_loc)}$", "$options": "i"}},
+                            {"slug": {"$regex": f"^{re.escape(cleaned_loc)}$", "$options": "i"}}
+                        ]
+                    })
+                if loc:
+                    target_locality_id = loc["_id"]
+                    query["service_area_ids"] = target_locality_id
+                else:
+                    return [], 0
 
         if keyword:
             safe_kw = re.escape(keyword.strip())
@@ -165,10 +214,17 @@ class ServiceListingService:
         if min_price is not None or max_price is not None:
             price_query = {}
             if min_price is not None:
-                price_query["$gte"] = float(min_price)
+                try:
+                    price_query["$gte"] = float(min_price)
+                except (ValueError, TypeError):
+                    pass
             if max_price is not None:
-                price_query["$lte"] = float(max_price)
-            query["pricing.amount"] = price_query
+                try:
+                    price_query["$lte"] = float(max_price)
+                except (ValueError, TypeError):
+                    pass
+            if price_query:
+                query["pricing.amount"] = price_query
 
         # Sorting
         sort_field = [("published_at", -1)]
@@ -191,13 +247,18 @@ class ServiceListingService:
             cat = mongo.db.service_categories.find_one({"_id": doc["category_id"]})
             doc["worker_name"] = worker_user.get("name") if worker_user else "Worker"
             doc["worker_photo_url"] = worker_prof.get("profile_photo_url") if worker_prof else None
+            doc["worker_photo_alt_text"] = worker_prof.get("photo_alt_text") if worker_prof else None
+            doc["worker_is_demo"] = worker_prof.get("is_demo", False) if worker_prof else False
             doc["worker_headline"] = worker_prof.get("headline") if worker_prof else ""
             doc["worker_profile_id"] = str(worker_prof["_id"]) if worker_prof else None
             doc["category_name"] = cat.get("name") if cat else ""
+            doc["category_slug"] = cat.get("slug") if cat else ""
 
             # Area names
             loc_ids = doc.get("service_area_ids", [])
             localities = list(mongo.db.localities.find({"_id": {"$in": loc_ids}}))
+            if target_locality_id:
+                localities.sort(key=lambda l: 0 if l["_id"] == target_locality_id else 1)
             doc["service_areas"] = [{"id": str(l["_id"]), "name": l["name"]} for l in localities]
 
             items.append(doc)

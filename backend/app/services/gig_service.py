@@ -125,6 +125,8 @@ class GigService:
         gig["employer_name"] = employer.get("name") if employer else "Employer"
         gig["employer_type"] = employer.get("employer_type") if employer else "business"
         gig["employer_logo_url"] = employer.get("logo_url") if employer else None
+        gig["employer_logo_alt_text"] = employer.get("logo_alt_text") if employer else None
+        gig["employer_is_demo"] = employer.get("is_demo", False) if employer else False
 
         # Locality & category
         loc = mongo.db.localities.find_one({"_id": gig["work_locality_id"]})
@@ -159,7 +161,7 @@ class GigService:
         return gig
 
     @staticmethod
-    def list_gigs(locality_id=None, category_slug=None, keyword=None, min_pay=None, max_pay=None, sort_by="newest", page=1, limit=12):
+    def list_gigs(locality_id=None, category_slug=None, keyword=None, role=None, min_pay=None, max_pay=None, sort_by="newest", page=1, limit=12):
         query = {
             "status": "published",
             "moderation_status": "approved"
@@ -176,13 +178,24 @@ class GigService:
             else:
                 return [], 0
 
+        if role:
+            safe_role = re.escape(role.strip())
+            query["$or"] = [
+                {"role_slug": safe_role},
+                {"title": {"$regex": safe_role, "$options": "i"}}
+            ]
+
         if keyword:
             safe_kw = re.escape(keyword.strip())
-            query["$or"] = [
+            kw_condition = [
                 {"title": {"$regex": safe_kw, "$options": "i"}},
                 {"description": {"$regex": safe_kw, "$options": "i"}},
                 {"required_skills": {"$in": [re.compile(safe_kw, re.I)]}}
             ]
+            if "$or" in query:
+                query["$and"] = [{"$or": query.pop("$or")}, {"$or": kw_condition}]
+            else:
+                query["$or"] = kw_condition
 
         if min_pay is not None or max_pay is not None:
             pay_query = {}
@@ -209,6 +222,8 @@ class GigService:
             emp = mongo.db.employer_profiles.find_one({"owner_user_id": doc["employer_id"]})
             doc["employer_name"] = emp.get("name") if emp else "Employer"
             doc["employer_logo_url"] = emp.get("logo_url") if emp else None
+            doc["employer_logo_alt_text"] = emp.get("logo_alt_text") if emp else None
+            doc["employer_is_demo"] = emp.get("is_demo", False) if emp else False
             loc = mongo.db.localities.find_one({"_id": doc["work_locality_id"]})
             doc["locality_name"] = loc.get("name") if loc else ""
             cat = mongo.db.service_categories.find_one({"_id": doc["category_id"]})

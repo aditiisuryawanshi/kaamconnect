@@ -18,11 +18,13 @@ class JobCreateSchema(BaseModel):
     work_locality_id: str
     schedule: str = Field(..., min_length=3, max_length=100) # e.g. "Monday to Saturday, 9:30 AM - 6:30 PM"
     application_deadline: Optional[str] = None # YYYY-MM-DD
+    image_url: Optional[str] = None
     publish_now: bool = False
 
 class JobUpdateSchema(BaseModel):
     title: Optional[str] = Field(None, min_length=5, max_length=150)
     category_id: Optional[str] = None
+    image_url: Optional[str] = None
     description: Optional[str] = Field(None, min_length=30, max_length=5000)
     employment_type: Optional[str] = Field(None, pattern="^(full_time|part_time|contract)$")
     responsibilities: Optional[List[str]] = None

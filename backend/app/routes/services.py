@@ -15,8 +15,14 @@ def list_services():
     min_price = request.args.get("min_price")
     max_price = request.args.get("max_price")
     sort_by = request.args.get("sort", "newest")
-    page = int(request.args.get("page", 1))
-    limit = int(request.args.get("limit", 12))
+    try:
+        page = max(1, int(request.args.get("page", 1)))
+    except (ValueError, TypeError):
+        page = 1
+    try:
+        limit = max(1, min(100, int(request.args.get("limit", 12))))
+    except (ValueError, TypeError):
+        limit = 12
 
     items, total = ServiceListingService.list_services(
         category_slug=category_slug,

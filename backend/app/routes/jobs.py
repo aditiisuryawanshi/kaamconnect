@@ -13,6 +13,7 @@ def list_jobs():
     employment_type = request.args.get("employment_type")
     pay_period = request.args.get("pay_period")
     keyword = request.args.get("keyword")
+    role = request.args.get("role")
     min_salary = request.args.get("min_salary")
     sort_by = request.args.get("sort", "newest")
     page = int(request.args.get("page", 1))
@@ -23,6 +24,7 @@ def list_jobs():
         employment_type=employment_type,
         pay_period=pay_period,
         keyword=keyword,
+        role=role,
         min_salary=min_salary,
         sort_by=sort_by,
         page=page,

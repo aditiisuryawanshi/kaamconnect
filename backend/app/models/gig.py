@@ -22,11 +22,13 @@ class GigCreateSchema(BaseModel):
     payment_conditions: Optional[str] = Field(None, max_length=300) # e.g. "Daily payout via UPI on shift completion"
     experience_requirements: Optional[str] = Field(None, max_length=300)
     application_deadline: Optional[str] = None # YYYY-MM-DD
+    image_url: Optional[str] = None
     publish_now: bool = False
 
 class GigUpdateSchema(BaseModel):
     title: Optional[str] = Field(None, min_length=5, max_length=150)
     category_id: Optional[str] = None
+    image_url: Optional[str] = None
     description: Optional[str] = Field(None, min_length=20, max_length=3000)
     responsibilities: Optional[List[str]] = None
     required_skills: Optional[List[str]] = None
